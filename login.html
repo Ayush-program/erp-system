@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0a0c12;
+    --surface: #111420;
+    --surface2: #181d2e;
+    --border: #1f2640;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --text: #e8eaf6;
+    --text-muted: #5c6580;
+    --text-sub: #8892b0;
+    --input-bg: #181d2e;
+    --shadow: rgba(0,0,0,0.5);
+  }
+  :root[data-theme="light"] {
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --surface2: #f5f7ff;
+    --border: #d8dce8;
+    --accent: #6c63ff;
+    --accent2: #00b894;
+    --text: #1a1d2e;
+    --text-muted: #9098b1;
+    --text-sub: #5c6580;
+    --input-bg: #f5f7ff;
+    --shadow: rgba(100,100,150,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .3s, color .3s;
+  }
+
+  .theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-sub);
+    transition: all .2s;
+    z-index: 100;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px var(--shadow);
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .brand-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: var(--text-sub); margin-bottom: 28px; }
+
+  .field { margin-bottom: 18px; }
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 7px; letter-spacing: .5px; text-transform: uppercase; }
+
+  input {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--text-muted); }
+
+  .btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--accent), #8a83ff);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:hover { opacity: .9; }
+  .btn:active { transform: scale(.99); }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .error {
+    background: rgba(255,107,107,.1);
+    border: 1px solid rgba(255,107,107,.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #ff6b6b;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error.show { display: block; }
+
+  .demo-hint {
+    margin-top: 24px;
+    padding: 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.7;
+  }
+  .demo-hint strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()">
+  <span id="themeIcon">☀️</span>
+  <span id="themeLabel">Light Mode</span>
+</button>
+
+<div class="login-box">
+  <div class="brand">
+    <div class="brand-logo">ERP</div>
+    <div class="brand-sub">Order Management System</div>
+  </div>
+
+  <h2>Welcome back</h2>
+  <p class="subtitle">Sign in to your account to continue</p>
+
+  <div class="error" id="errorMsg"></div>
+
+  <div class="field">
+    <label>Email Address</label>
+    <input type="email" id="email" placeholder="admin@erp.com" autocomplete="email">
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button class="btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+
+  <div class="demo-hint">
+    Default credentials:<br>
+    <strong>admin@erp.com</strong> / <strong>admin123</strong>
+  </div>
+</div>
+
+<script>
+// Theme
+const saved = localStorage.getItem('erp_theme') || 'dark';
+applyTheme(saved);
+
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeIcon').textContent = t === 'dark' ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = t === 'dark' ? 'Light Mode' : 'Dark Mode';
+  localStorage.setItem('erp_theme', t);
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+}
+
+// Enter key
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('email').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('errorMsg');
+  const btn = document.getElementById('loginBtn');
+
+  errEl.classList.remove('show');
+  if (!email || !password) { showErr('Please enter email and password.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.detail || 'Login failed'); return; }
+
+    localStorage.setItem('erp_token', data.access_token);
+    localStorage.setItem('erp_user', JSON.stringify(data.user));
+    window.location.href = '/';
+  } catch (e) {
+    showErr('Connection error. Is the server running?');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+</script>
+</body>
+</html>
