@@ -108,7 +108,8 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "is_active": user.is_active   # ✅ ADD THIS
         }
     }
 
