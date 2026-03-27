@@ -200,6 +200,77 @@ def create_user(req: dict, db: Session = Depends(get_db)):
     db.refresh(user)
 
     return {"message": "User created"}
+
+@app.get("/api/orders")
+def get_orders(db: Session = Depends(get_db)):
+    orders = db.query(models.Order).all()
+
+    result = []
+    for o in orders:
+        result.append({
+            "id": o.id,
+            "order_number": o.order_number,
+            "customer": o.customer.name if o.customer else None,
+            "status": o.status,
+            "total": o.total,
+            "date": o.order_date
+        })
+
+    return result
+
+@app.post("/api/orders")
+def create_order(req: dict, db: Session = Depends(get_db)):
+
+    # generate order number
+    order_number = f"ORD-{int(datetime.utcnow().timestamp())}"
+
+    order = models.Order(
+        order_number=order_number,
+        customer_id=req.get("customer_id"),
+        status="pending",
+        subtotal=0,
+        tax=0,
+        discount=0,
+        total=0
+    )
+
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+
+    total = 0
+
+    # add items
+    for item in req.get("items", []):
+        product = db.query(models.Product).filter(models.Product.id == item["product_id"]).first()
+
+        if not product:
+            continue
+
+        quantity = int(item["quantity"])
+        price = product.price
+        item_total = quantity * price
+
+        order_item = models.OrderItem(
+            order_id=order.id,
+            product_id=product.id,
+            quantity=quantity,
+            unit_price=price,
+            total_price=item_total
+        )
+
+        total += item_total
+
+        # update stock
+        product.stock_quantity -= quantity
+
+        db.add(order_item)
+
+    order.total = total
+
+    db.commit()
+
+    return {"message": "Order created", "order_id": order.id}
     
 # ─── TEST ───────────────────────────────────────────────
 @app.get("/api/test")
