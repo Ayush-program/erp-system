@@ -104,7 +104,12 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": user
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role
+        }
     }
 
 # ─── TEST ROUTE ──────────────────────────────────────────
