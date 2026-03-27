@@ -112,7 +112,7 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
             "is_active": user.is_active   
         }
     }
-    }
+    
 
 # ─── TEST ROUTE ──────────────────────────────────────────
 @app.get("/api/test")
