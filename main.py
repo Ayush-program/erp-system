@@ -154,6 +154,53 @@ def recent_orders():
 def monthly_revenue():
     return []
 
+@app.get("/api/inventory")
+def get_inventory(db: Session = Depends(get_db)):
+    products = db.query(models.Product).all()
+
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "sku": p.sku,
+            "stock": p.stock_quantity,
+            "min_stock": p.min_stock_level,
+            "unit": p.unit
+        }
+        for p in products
+    ]
+
+@app.get("/api/admin/users")
+def get_users(db: Session = Depends(get_db)):
+    users = db.query(models.AdminUser).all()
+
+    return [
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "role": u.role,
+            "is_active": u.is_active
+        }
+        for u in users
+    ]
+
+@app.post("/api/admin/users")
+def create_user(req: dict, db: Session = Depends(get_db)):
+    user = models.AdminUser(
+        name=req.get("name"),
+        email=req.get("email"),
+        hashed_password=hash_password(req.get("password")),
+        role=req.get("role", "subadmin"),
+        is_active=True
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "User created"}
+    
 # ─── TEST ───────────────────────────────────────────────
 @app.get("/api/test")
 def test():
