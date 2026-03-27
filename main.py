@@ -77,7 +77,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def home():
     return FileResponse(os.path.join(BASE_DIR, "dashboard.html"))
 
-@app.get("/login")
+@app.post("/api/auth/login")
 def login_page():
     return FileResponse(os.path.join(BASE_DIR, "login.html"))
 
