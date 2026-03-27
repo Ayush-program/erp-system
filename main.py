@@ -6,8 +6,30 @@ import models, schemas, crud
 from database import SessionLocal, engine
 import os, hashlib, hmac, base64, json
 from datetime import datetime
+from database import SessionLocal
 
 models.Base.metadata.create_all(bind=engine)
+
+def create_default_admin():
+    db = SessionLocal()
+    try:
+        user = db.query(models.AdminUser).filter(models.AdminUser.email == "admin@erp.com").first()
+
+        if not user:
+            admin = models.AdminUser(
+                name="Admin",
+                email="admin@erp.com",
+                hashed_password=hash_password("admin123"),
+                role="admin",
+                is_active=True
+            )
+            db.add(admin)
+            db.commit()
+            print("✅ Default admin created: admin@erp.com / admin123")
+    finally:
+        db.close()
+
+create_default_admin()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this")
 
