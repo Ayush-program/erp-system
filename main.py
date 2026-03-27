@@ -109,8 +109,9 @@ def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
             "name": user.name,
             "email": user.email,
             "role": user.role,
-            "is_active": user.is_active   # ✅ ADD THIS
+            "is_active": user.is_active   
         }
+    }
     }
 
 # ─── TEST ROUTE ──────────────────────────────────────────
