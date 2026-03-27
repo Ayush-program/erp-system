@@ -89,7 +89,7 @@ def login_page():
     return FileResponse(os.path.join(BASE_DIR, "login.html"))
 
 # ─── AUTH ROUTES ─────────────────────────────────────────
-@app.post("/api/auth/login", response_model=schemas.LoginResponse)
+@app.post("/api/auth/login")
 def login(req: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.AdminUser).filter(models.AdminUser.email == req.email).first()
 
