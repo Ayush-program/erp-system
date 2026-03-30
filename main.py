@@ -33,21 +33,25 @@ def get_db():
 # ─── CREATE DEFAULT ADMIN ────────────────────────────────
 def create_default_admin():
     db = SessionLocal()
-    user = db.query(models.AdminUser).filter(models.AdminUser.email == "admin@erp.com").first()
 
-    if not user:
-        admin = models.AdminUser(
-            name="Admin",
-            email="admin@erp.com",
-            hashed_password=hash_password("admin123"),
-            role="admin",
-            is_active=True
-        )
-        db.add(admin)
-        db.commit()
-        print("✅ Admin created")
+    # DELETE OLD USER (important)
+    db.query(models.AdminUser).filter(models.AdminUser.email == "admin@erp.com").delete()
+    db.commit()
 
+    # CREATE NEW USER
+    admin = models.AdminUser(
+        name="Admin",
+        email="admin@erp.com",
+        hashed_password=hash_password("admin123"),
+        role="admin",
+        is_active=True
+    )
+
+    db.add(admin)
+    db.commit()
     db.close()
+
+    print("✅ Admin reset: admin@erp.com / admin123")
 
 create_default_admin()
 
