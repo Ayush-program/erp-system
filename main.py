@@ -143,20 +143,54 @@ def get_products(db: Session = Depends(get_db)):
 # ─── DASHBOARD ──────────────────────────────────────────
 @app.get("/api/dashboard/stats")
 def stats(db: Session = Depends(get_db)):
+
+    customers = db.query(models.Customer).count()
+    products = db.query(models.Product).count()
+    orders = db.query(models.Order).count()
+
+    revenue = db.query(models.Order).with_entities(models.Order.total).all()
+    total_revenue = sum([r[0] for r in revenue if r[0]])
+
     return {
-        "customers": db.query(models.Customer).count(),
-        "products": db.query(models.Product).count(),
-        "orders": db.query(models.Order).count(),
-        "revenue": 0
+        "customers": customers,
+        "products": products,
+        "orders": orders,
+        "revenue": total_revenue
     }
 
-@app.get("/api/dashboard/recent-orders")
-def recent_orders():
-    return []
+@app.get("/api/dashboard/monthly-revenue")
+def monthly_revenue(db: Session = Depends(get_db)):
+
+    orders = db.query(models.Order).all()
+
+    monthly = {}
+
+    for o in orders:
+        month = o.order_date.strftime("%b")
+        monthly[month] = monthly.get(month, 0) + (o.total or 0)
+
+    result = []
+    for m, v in monthly.items():
+        result.append({"month": m, "revenue": v})
+
+    return result
 
 @app.get("/api/dashboard/monthly-revenue")
-def monthly_revenue():
-    return []
+def monthly_revenue(db: Session = Depends(get_db)):
+
+    orders = db.query(models.Order).all()
+
+    monthly = {}
+
+    for o in orders:
+        month = o.order_date.strftime("%b")
+        monthly[month] = monthly.get(month, 0) + (o.total or 0)
+
+    result = []
+    for m, v in monthly.items():
+        result.append({"month": m, "revenue": v})
+
+    return result
 
 @app.get("/api/inventory")
 def get_inventory(db: Session = Depends(get_db)):
