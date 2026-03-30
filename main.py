@@ -208,6 +208,23 @@ def get_inventory(db: Session = Depends(get_db)):
         for p in products
     ]
 
+@app.get("/api/dashboard/recent-orders")
+def recent_orders(db: Session = Depends(get_db)):
+
+    orders = db.query(models.Order).order_by(models.Order.id.desc()).limit(5).all()
+
+    return [
+        {
+            "id": o.id,
+            "order_number": o.order_number,
+            "customer": o.customer.name if o.customer else "",
+            "status": o.status,
+            "total": o.total,
+            "date": o.order_date
+        }
+        for o in orders
+    ]
+
 @app.get("/api/admin/users")
 def get_users(db: Session = Depends(get_db)):
     users = db.query(models.AdminUser).all()
