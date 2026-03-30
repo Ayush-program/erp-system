@@ -275,6 +275,71 @@ def create_order(req: dict, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Order created", "order_id": order.id}
+
+#delete customer and update
+
+@app.put("/api/customers/{customer_id}")
+def update_customer(customer_id: int, req: dict, db: Session = Depends(get_db)):
+    customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer.name = req.get("name", customer.name)
+    customer.email = req.get("email", customer.email)
+    customer.phone = req.get("phone", customer.phone)
+    customer.address = req.get("address", customer.address)
+    customer.city = req.get("city", customer.city)
+
+    db.commit()
+    db.refresh(customer)
+
+    return customer
+
+
+@app.delete("/api/customers/{customer_id}")
+def delete_customer(customer_id: int, db: Session = Depends(get_db)):
+    customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    db.delete(customer)
+    db.commit()
+
+    return {"message": "Customer deleted"}
+
+#order update and delete
+@app.put("/api/products/{product_id}")
+def update_product(product_id: int, req: dict, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product.name = req.get("name", product.name)
+    product.price = float(req.get("price", product.price))
+    product.stock_quantity = int(req.get("stock_quantity", product.stock_quantity))
+
+    db.commit()
+    db.refresh(product)
+
+    return product
+
+
+@app.delete("/api/products/{product_id}")
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    db.delete(product)
+    db.commit()
+
+    return {"message": "Product deleted"}
+
+
     
 # ─── TEST ───────────────────────────────────────────────
 @app.get("/api/test")
