@@ -339,6 +339,28 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
 
     return {"message": "Product deleted"}
 
+#update status
+
+@app.put("/api/orders/{order_id}/status")
+def update_order_status(order_id: int, req: dict, db: Session = Depends(get_db)):
+
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # update status
+    order.status = req.get("status", order.status)
+
+    db.commit()
+    db.refresh(order)
+
+    return {
+        "message": "Order status updated",
+        "order_id": order.id,
+        "status": order.status
+    }
+
 
     
 # ─── TEST ───────────────────────────────────────────────
