@@ -770,7 +770,7 @@ function navigate(page) {
   document.getElementById('page-title').textContent = titles[page] || page;
   
   const actions = {
-    orders: '<button class="btn btn-primary" onclick="openModal(\'order-modal\')">+ New Order</button>',
+    orders: '<button class="btn btn-primary" onclick="openOrderModal()">+ New Order</button>',
     customers: '<button class="btn btn-primary" onclick="openAddCustomerModal()">+ Add Customer</button>',
     products: '<button class="btn btn-primary" onclick="openAddProductModal()">+ Add Product</button>'
   };
@@ -799,6 +799,207 @@ function closeModal(id) {
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); });
 });
+
+// ==================== ORDER MODAL ====================
+async function openOrderModal() {
+  try {
+    // Show loading state
+    toast('Loading customers and products...', 'success');
+    
+    // Fetch customers if not loaded
+    if (state.customers.length === 0) {
+      state.customers = await apiFetch('/customers');
+    }
+    
+    // Fetch products if not loaded
+    if (state.products.length === 0) {
+      state.products = await apiFetch('/products');
+    }
+    
+    // Check if data exists
+    if (state.customers.length === 0) {
+      toast('No customers found. Please add a customer first.', 'error');
+      closeModal('order-modal');
+      return;
+    }
+    
+    if (state.products.length === 0) {
+      toast('No products found. Please add a product first.', 'error');
+      closeModal('order-modal');
+      return;
+    }
+    
+    // Populate customer dropdown
+    const customerSelect = document.getElementById('order-customer');
+    customerSelect.innerHTML = '<option value="">Select a customer...</option>';
+    state.customers.forEach(c => {
+      customerSelect.innerHTML += `<option value="${c.id}">${c.name} (${c.email})</option>`;
+    });
+    
+    // Reset form
+    document.getElementById('order-delivery').value = '';
+    document.getElementById('order-tax').value = '18';
+    document.getElementById('order-discount').value = '0';
+    document.getElementById('order-notes').value = '';
+    document.getElementById('order-items-container').innerHTML = '';
+    
+    // Add first item row
+    addOrderItem();
+    
+    // Open modal
+    openModal('order-modal');
+  } catch (error) {
+    console.error('Error opening order modal:', error);
+    toast('Failed to load order form: ' + error.message, 'error');
+  }
+}
+
+function addOrderItem() {
+  const container = document.getElementById('order-items-container');
+  if (!container) return;
+  
+  if (state.products.length === 0) {
+    toast('No products available', 'error');
+    return;
+  }
+  
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.style.marginBottom = '10px';
+  div.style.padding = '10px';
+  div.style.background = 'var(--surface2)';
+  div.style.borderRadius = '8px';
+  
+  div.innerHTML = `
+    <select class="item-product" style="padding: 8px; border-radius: 6px;">
+      <option value="">Select Product</option>
+      ${state.products.map(p => `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} - ₹${p.price} (Stock: ${p.stock_quantity})</option>`).join('')}
+    </select>
+    <input type="number" class="item-qty" value="1" min="1" placeholder="Qty" style="padding: 8px; border-radius: 6px;">
+    <input type="number" class="item-price" value="" placeholder="Price" style="padding: 8px; border-radius: 6px;" readonly>
+    <button class="remove-item" onclick="this.parentElement.remove(); recalcTotal()" style="padding: 8px 12px; background: rgba(255,107,107,.2); border: none; border-radius: 6px; cursor: pointer;">✕</button>
+  `;
+  
+  const productSelect = div.querySelector('.item-product');
+  const priceInput = div.querySelector('.item-price');
+  const qtyInput = div.querySelector('.item-qty');
+  
+  // Set initial price when product is selected
+  productSelect.onchange = () => {
+    const selected = productSelect.options[productSelect.selectedIndex];
+    if (selected.value) {
+      priceInput.value = selected.dataset.price;
+      priceInput.readOnly = true;
+    } else {
+      priceInput.value = '';
+      priceInput.readOnly = false;
+    }
+    recalcTotal();
+  };
+  
+  qtyInput.oninput = () => recalcTotal();
+  priceInput.oninput = () => recalcTotal();
+  
+  container.appendChild(div);
+  recalcTotal();
+}
+
+function recalcTotal() {
+  let subtotal = 0;
+  let hasItems = false;
+  
+  document.querySelectorAll('.item-row').forEach(row => {
+    const productSelect = row.querySelector('.item-product');
+    const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+    const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+    
+    if (productSelect && productSelect.value && qty > 0 && price > 0) {
+      subtotal += qty * price;
+      hasItems = true;
+    }
+  });
+  
+  const tax = parseFloat(document.getElementById('order-tax')?.value) || 0;
+  const discount = parseFloat(document.getElementById('order-discount')?.value) || 0;
+  const taxAmount = subtotal * tax / 100;
+  const total = subtotal + taxAmount - discount;
+  
+  const previewEl = document.getElementById('order-total-preview');
+  if (previewEl) {
+    previewEl.textContent = '₹' + formatNumber(Math.max(0, total));
+  }
+  
+  // Show warning if no items
+  if (!hasItems && document.querySelectorAll('.item-row').length > 0) {
+    // Don't show warning, just keep total as 0
+  }
+}
+
+async function submitOrder() {
+  try {
+    const customerId = document.getElementById('order-customer').value;
+    if (!customerId) {
+      toast('Please select a customer', 'error');
+      return;
+    }
+    
+    const items = [];
+    let valid = true;
+    
+    document.querySelectorAll('.item-row').forEach(row => {
+      const productSelect = row.querySelector('.item-product');
+      const productId = productSelect ? productSelect.value : null;
+      const quantity = parseInt(row.querySelector('.item-qty')?.value);
+      const unitPrice = parseFloat(row.querySelector('.item-price')?.value);
+      
+      if (!productId || !quantity || !unitPrice) {
+        valid = false;
+        return;
+      }
+      
+      if (quantity <= 0) {
+        valid = false;
+        return;
+      }
+      
+      items.push({ 
+        product_id: parseInt(productId), 
+        quantity: quantity, 
+        unit_price: unitPrice 
+      });
+    });
+    
+    if (!valid || items.length === 0) {
+      toast('Please add at least one valid item with quantity and price', 'error');
+      return;
+    }
+    
+    const payload = {
+      customer_id: parseInt(customerId),
+      items: items,
+      tax: parseFloat(document.getElementById('order-tax')?.value) || 0,
+      discount: parseFloat(document.getElementById('order-discount')?.value) || 0,
+      notes: document.getElementById('order-notes')?.value || '',
+      delivery_date: document.getElementById('order-delivery')?.value || null
+    };
+    
+    console.log('Submitting order:', payload);
+    
+    const result = await apiFetch('/orders', { 
+      method: 'POST', 
+      body: JSON.stringify(payload) 
+    });
+    
+    toast('Order created successfully!');
+    closeModal('order-modal');
+    loadOrders();
+    loadDashboard();
+    
+  } catch (error) {
+    console.error('Error creating order:', error);
+    toast('Failed to create order: ' + error.message, 'error');
+  }
+}
 
 // ==================== DASHBOARD ====================
 async function loadDashboard() {
@@ -933,91 +1134,6 @@ async function deleteOrder(id) {
   try {
     await apiFetch(`/orders/${id}`, { method: 'DELETE' });
     toast('Order deleted');
-    loadOrders();
-    loadDashboard();
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-// Order creation
-async function prepareOrderModal() {
-  if (state.customers.length === 0) await loadCustomers();
-  if (state.products.length === 0) await loadProducts();
-  
-  const customerSelect = document.getElementById('order-customer');
-  customerSelect.innerHTML = state.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  
-  document.getElementById('order-items-container').innerHTML = '';
-  addOrderItem();
-}
-
-function addOrderItem() {
-  const container = document.getElementById('order-items-container');
-  const div = document.createElement('div');
-  div.className = 'item-row';
-  div.innerHTML = `
-    <select class="item-product">
-      ${state.products.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} - ₹${p.price}</option>`).join('')}
-    </select>
-    <input type="number" class="item-qty" value="1" min="1" placeholder="Qty">
-    <input type="number" class="item-price" value="${state.products[0]?.price || 0}" placeholder="Price">
-    <button class="remove-item" onclick="this.parentElement.remove(); recalcTotal()">×</button>
-  `;
-  const productSelect = div.querySelector('.item-product');
-  const priceInput = div.querySelector('.item-price');
-  productSelect.onchange = () => {
-    priceInput.value = productSelect.options[productSelect.selectedIndex].dataset.price;
-    recalcTotal();
-  };
-  div.querySelector('.item-qty').oninput = () => recalcTotal();
-  priceInput.oninput = () => recalcTotal();
-  container.appendChild(div);
-  recalcTotal();
-}
-
-function recalcTotal() {
-  let subtotal = 0;
-  document.querySelectorAll('.item-row').forEach(row => {
-    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-    const price = parseFloat(row.querySelector('.item-price').value) || 0;
-    subtotal += qty * price;
-  });
-  const tax = parseFloat(document.getElementById('order-tax').value) || 0;
-  const discount = parseFloat(document.getElementById('order-discount').value) || 0;
-  const total = subtotal + (subtotal * tax / 100) - discount;
-  document.getElementById('order-total-preview').textContent = '₹' + formatNumber(Math.max(0, total));
-}
-
-async function submitOrder() {
-  const items = [];
-  let valid = true;
-  document.querySelectorAll('.item-row').forEach(row => {
-    const product_id = parseInt(row.querySelector('.item-product').value);
-    const quantity = parseInt(row.querySelector('.item-qty').value);
-    const unit_price = parseFloat(row.querySelector('.item-price').value);
-    if (!product_id || !quantity || !unit_price) valid = false;
-    items.push({ product_id, quantity, unit_price });
-  });
-  
-  if (!valid || items.length === 0) {
-    toast('Please add at least one valid item', 'error');
-    return;
-  }
-  
-  const payload = {
-    customer_id: parseInt(document.getElementById('order-customer').value),
-    items,
-    tax: parseFloat(document.getElementById('order-tax').value) || 0,
-    discount: parseFloat(document.getElementById('order-discount').value) || 0,
-    notes: document.getElementById('order-notes').value,
-    delivery_date: document.getElementById('order-delivery').value || null
-  };
-  
-  try {
-    await apiFetch('/orders', { method: 'POST', body: JSON.stringify(payload) });
-    toast('Order created successfully!');
-    closeModal('order-modal');
     loadOrders();
     loadDashboard();
   } catch (e) {
@@ -1464,7 +1580,7 @@ if (CURRENT_USER) {
   }
 }
 
-// Event listeners for modals
+// Event listeners
 document.getElementById('order-tax')?.addEventListener('input', recalcTotal);
 document.getElementById('order-discount')?.addEventListener('input', recalcTotal);
 
