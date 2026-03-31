@@ -435,3 +435,9 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 @app.get("/api/test")
 def test():
     return {"status": "ERP running successfully 🚀"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
