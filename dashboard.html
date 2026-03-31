@@ -1141,39 +1141,22 @@ let state = {
   revenueChart: null, donutChart: null
 };
 
-// ── NAVIGATION ─────────────────────────────────────────
-function navigate(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  if (el) el.classList.add('active');
+// ══ AUTH ══════════════════════════════════════════════
+const TOKEN = localStorage.getItem('erp_token');
+const CURRENT_USER = JSON.parse(localStorage.getItem('erp_user') || 'null');
 
-  const titles = { dashboard: 'Dashboard', orders: 'Orders', customers: 'Customers', products: 'Products', inventory: 'Inventory', users: 'User Management' };
-  document.getElementById('page-title').textContent = titles[page] || page;
-
-  const actions = {
-    orders: '<button class="btn btn-primary" onclick="openModal(\'order-modal\')">+ New Order</button>',
-    customers: '<button class="btn btn-primary" onclick="openModal(\'customer-modal\')">+ Add Customer</button>',
-    products: '<button class="btn btn-primary" onclick="openModal(\'product-modal\')">+ Add Product</button>',
-    users: '<button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>',
-  };
-  document.getElementById('topbar-action').innerHTML = actions[page] || '';
-
-  if (page === 'orders') loadOrders();
-  if (page === 'customers') loadCustomers();
-  if (page === 'products') loadProducts();
-  if (page === 'inventory') loadInventory();
-  if (page === 'users') loadUsers();
+if (!TOKEN || !CURRENT_USER) { 
+  window.location.href = '/login'; 
 }
 
-// ── TOAST ──────────────────────────────────────────────
-function toast(msg, type = 'success') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(() => { el.style.animation = 'fadeOut .3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3000);
-}
+// Patch fetch to always send Bearer token
+const _origFetch = window.fetch;
+window.fetch = function(url, opts = {}) {
+  if (typeof url === 'string' && (url.startsWith('/api') || url.startsWith('/api/'))) {
+    opts.headers = Object.assign({}, opts.headers || {}, { 'Authorization': 'Bearer ' + TOKEN });
+  }
+  return _origFetch(url, opts);
+};
 
 // ── API HELPERS ────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
@@ -1182,7 +1165,10 @@ async function apiFetch(path, opts = {}) {
       headers: { 'Content-Type': 'application/json' },
       ...opts
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Request failed'); }
+    if (!res.ok) { 
+      const e = await res.json(); 
+      throw new Error(e.detail || 'Request failed'); 
+    }
     return await res.json();
   } catch (e) {
     toast(e.message, 'error');
@@ -1190,22 +1176,60 @@ async function apiFetch(path, opts = {}) {
   }
 }
 
+// ── TOAST ──────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const container = document.getElementById('toasts');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
+  container.appendChild(el);
+  setTimeout(() => { 
+    el.style.animation = 'fadeOut .3s ease forwards'; 
+    setTimeout(() => el.remove(), 300); 
+  }, 3000);
+}
+
+// ── NAVIGATION ─────────────────────────────────────────
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const targetPage = document.getElementById('page-' + page);
+  if (targetPage) targetPage.classList.add('active');
+  if (el) el.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', orders: 'Orders', customers: 'Customers', products: 'Products', inventory: 'Inventory', users: 'User Management' };
+  const titleEl = document.getElementById('page-title');
+  if (titleEl) titleEl.textContent = titles[page] || page;
+
+  const actions = {
+    orders: '<button class="btn btn-primary" onclick="openModal(\'order-modal\')">+ New Order</button>',
+    customers: '<button class="btn btn-primary" onclick="openModal(\'customer-modal\')">+ Add Customer</button>',
+    products: '<button class="btn btn-primary" onclick="openModal(\'product-modal\')">+ Add Product</button>',
+    users: '<button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>',
+  };
+  const actionEl = document.getElementById('topbar-action');
+  if (actionEl) actionEl.innerHTML = actions[page] || '';
+
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'orders') loadOrders();
+  if (page === 'customers') loadCustomers();
+  if (page === 'products') loadProducts();
+  if (page === 'inventory') loadInventory();
+  if (page === 'users') loadUsers();
+}
+
 // ── MODAL ──────────────────────────────────────────────
 function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
   if (id === 'order-modal') prepareOrderModal();
-  document.getElementById(id).classList.add('open');
+  modal.classList.add('open');
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-  clearForm(id);
-}
-
-function clearForm(id) {
-  document.getElementById(id).querySelectorAll('input:not([readonly]),textarea').forEach(el => {
-    if (el.type === 'number') el.value = el.id.includes('tax') ? '18' : el.id.includes('discount') ? '0' : '';
-    else if (el.type !== 'hidden') el.value = '';
-  });
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('open');
 }
 
 // Click overlay to close
@@ -1220,184 +1244,235 @@ async function loadDashboard() {
   try {
     const [stats, revenue, recent] = await Promise.all([
       apiFetch('/dashboard/stats'),
-      apiFetch('/api/dashboard/monthly-revenue')
-      apiFetch('/api/dashboard/recent-orders')
+      apiFetch('/dashboard/monthly-revenue'),
+      apiFetch('/dashboard/recent-orders')
     ]);
 
     // Stats
-    document.getElementById('stat-orders').textContent = stats.total_orders;
-    document.getElementById('stat-revenue').textContent = '₹' + formatNum(stats.total_revenue);
-    document.getElementById('stat-customers').textContent = stats.total_customers;
-    document.getElementById('stat-lowstock').textContent = stats.low_stock_alerts;
-    document.getElementById('stat-pending').textContent = stats.pending_orders;
-    document.getElementById('stat-delivered').textContent = stats.delivered_orders;
-    document.getElementById('stat-products').textContent = stats.total_products;
-    document.getElementById('stat-cancelled').textContent = stats.cancelled_orders;
-    document.getElementById('pending-badge').textContent = stats.pending_orders;
+    document.getElementById('stat-orders').textContent = stats.total_orders || 0;
+    document.getElementById('stat-revenue').textContent = '₹' + formatNum(stats.total_revenue || 0);
+    document.getElementById('stat-customers').textContent = stats.total_customers || 0;
+    document.getElementById('stat-lowstock').textContent = stats.low_stock_alerts || 0;
+    document.getElementById('stat-pending').textContent = stats.pending_orders || 0;
+    document.getElementById('stat-delivered').textContent = stats.delivered_orders || 0;
+    document.getElementById('stat-products').textContent = stats.total_products || 0;
+    document.getElementById('stat-cancelled').textContent = stats.cancelled_orders || 0;
+    const badge = document.getElementById('pending-badge');
+    if (badge) badge.textContent = stats.pending_orders || 0;
 
     // Revenue chart
-    const months = Object.keys(revenue);
-    const revenues = months.map(m => revenue[m].revenue);
-    const orders = months.map(m => revenue[m].orders);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const revenues = months.map(m => revenue[m]?.revenue || 0);
+    const ordersCount = months.map(m => revenue[m]?.orders || 0);
 
-    if (state.revenueChart) state.revenueChart.destroy();
-    state.revenueChart = new Chart(document.getElementById('revenue-chart'), {
-      type: 'bar',
-      data: {
-        labels: months,
-        datasets: [
-          {
-            label: 'Revenue (₹)',
-            data: revenues,
-            backgroundColor: 'rgba(108,99,255,0.7)',
-            borderRadius: 6,
-            borderSkipped: false,
-          },
-          {
-            label: 'Orders',
-            data: orders,
-            type: 'line',
-            borderColor: '#00d4aa',
-            backgroundColor: 'rgba(0,212,170,0.1)',
-            pointBackgroundColor: '#00d4aa',
-            pointRadius: 4,
-            tension: 0.4,
-            yAxisID: 'y2'
+    const chartCanvas = document.getElementById('revenue-chart');
+    if (chartCanvas) {
+      if (state.revenueChart) state.revenueChart.destroy();
+      state.revenueChart = new Chart(chartCanvas, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Revenue (₹)',
+              data: revenues,
+              backgroundColor: 'rgba(108,99,255,0.7)',
+              borderRadius: 6,
+            },
+            {
+              label: 'Orders',
+              data: ordersCount,
+              type: 'line',
+              borderColor: '#00d4aa',
+              backgroundColor: 'rgba(0,212,170,0.1)',
+              pointBackgroundColor: '#00d4aa',
+              pointRadius: 4,
+              tension: 0.4,
+              yAxisID: 'y2'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#5c6580' } } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '₹' + formatNum(v) } },
+            y2: { position: 'right', grid: { display: false } }
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#5c6580', font: { family: 'DM Sans' } } } },
-        scales: {
-          x: { grid: { color: 'rgba(31,38,64,.8)' }, ticks: { color: '#5c6580' } },
-          y: { grid: { color: 'rgba(31,38,64,.8)' }, ticks: { color: '#5c6580', callback: v => '₹' + formatNum(v) } },
-          y2: { position: 'right', grid: { display: false }, ticks: { color: '#00d4aa' } }
         }
-      }
-    });
+      });
+    }
 
     // Donut chart
     const statusData = [
-      { label: 'Pending', value: stats.pending_orders, color: '#6c63ff' },
-      { label: 'Delivered', value: stats.delivered_orders, color: '#00d4aa' },
-      { label: 'Cancelled', value: stats.cancelled_orders, color: '#ff6b6b' },
-      { label: 'Other', value: stats.total_orders - stats.pending_orders - stats.delivered_orders - stats.cancelled_orders, color: '#ffa94d' },
+      { label: 'Pending', value: stats.pending_orders || 0, color: '#6c63ff' },
+      { label: 'Delivered', value: stats.delivered_orders || 0, color: '#00d4aa' },
+      { label: 'Cancelled', value: stats.cancelled_orders || 0, color: '#ff6b6b' },
+      { label: 'Other', value: (stats.total_orders || 0) - (stats.pending_orders || 0) - (stats.delivered_orders || 0) - (stats.cancelled_orders || 0), color: '#ffa94d' },
     ].filter(d => d.value > 0);
 
-    if (state.donutChart) state.donutChart.destroy();
-    state.donutChart = new Chart(document.getElementById('donut-chart'), {
-      type: 'doughnut',
-      data: {
-        labels: statusData.map(d => d.label),
-        datasets: [{ data: statusData.map(d => d.value), backgroundColor: statusData.map(d => d.color), borderWidth: 0, hoverOffset: 4 }]
-      },
-      options: {
-        responsive: false,
-        cutout: '70%',
-        plugins: { legend: { display: false } }
-      }
-    });
+    const donutCanvas = document.getElementById('donut-chart');
+    if (donutCanvas) {
+      if (state.donutChart) state.donutChart.destroy();
+      state.donutChart = new Chart(donutCanvas, {
+        type: 'doughnut',
+        data: {
+          labels: statusData.map(d => d.label),
+          datasets: [{ data: statusData.map(d => d.value), backgroundColor: statusData.map(d => d.color), borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
 
     // Legend
-    document.getElementById('donut-legend').innerHTML = statusData.map(d => `
-      <div class="legend-item">
-        <div class="legend-dot" style="background:${d.color}"></div>
-        <span class="legend-label">${d.label}</span>
-        <span class="legend-value">${d.value}</span>
-      </div>
-    `).join('');
+    const legendEl = document.getElementById('donut-legend');
+    if (legendEl) {
+      legendEl.innerHTML = statusData.map(d => `
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${d.color}"></div>
+          <span class="legend-label">${d.label}</span>
+          <span class="legend-value">${d.value}</span>
+        </div>
+      `).join('');
+    }
 
     // Recent orders
-    document.getElementById('recent-orders-body').innerHTML = recent.length === 0
-      ? '<tr><td colspan="6" class="empty-state" style="padding:30px;text-align:center">No orders yet</td></tr>'
-      : recent.map(o => `
-        <tr>
-          <td><strong style="color:var(--accent)">${o.order_number}</strong></td>
-          <td>${o.customer?.name || '—'}</td>
-          <td>${formatDate(o.order_date)}</td>
-          <td><strong>₹${formatNum(o.total)}</strong></td>
-          <td>${badge(o.status)}</td>
-          <td>
-            <select onchange="quickStatus(${o.id}, this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-size:12px;cursor:pointer">
-              ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => `<option ${s===o.status?'selected':''} value="${s}">${s}</option>`).join('')}
-            </select>
-          </td>
-        </tr>
-      `).join('');
+    const recentBody = document.getElementById('recent-orders-body');
+    if (recentBody) {
+      if (!recent || recent.length === 0) {
+        recentBody.innerHTML = '<tr><td colspan="6" class="empty-state" style="padding:30px;text-align:center">No orders yet</td></tr>';
+      } else {
+        recentBody.innerHTML = recent.map(o => `
+          <tr>
+            <td><strong style="color:var(--accent)">${o.order_number}</strong></td>
+            <td>${o.customer || '—'}</td>
+            <td>${formatDate(o.order_date)}</td>
+            <td><strong>₹${formatNum(o.total)}</strong></td>
+            <td>${badge(o.status)}</td>
+            <td>
+              <select onchange="quickStatus(${o.id}, this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-size:12px;cursor:pointer">
+                ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => `<option ${s===o.status?'selected':''} value="${s}">${s}</option>`).join('')}
+              </select>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
 
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error('Dashboard error:', e); 
+    toast('Failed to load dashboard', 'error');
+  }
 }
 
 // ══════════════════════════════════════════════════════
 // ORDERS
 // ══════════════════════════════════════════════════════
 async function loadOrders() {
-  state.orders = await apiFetch('/orders');
-  renderOrders();
+  try {
+    state.orders = await apiFetch('/orders');
+    renderOrders();
+  } catch(e) {
+    console.error(e);
+  }
 }
 
-function renderOrders(data) {
-  const orders = data || state.orders;
-  document.getElementById('orders-body').innerHTML = orders.length === 0
-    ? '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No orders found</td></tr>'
-    : orders.map(o => `
-      <tr>
-        <td><strong style="color:var(--accent)">${o.order_number}</strong></td>
-        <td>${o.customer?.name || '—'}</td>
-        <td>${formatDate(o.order_date)}</td>
-        <td>${o.items?.length || 0} items</td>
-        <td><strong>₹${formatNum(o.total)}</strong></td>
-        <td>${badge(o.status)}</td>
-        <td style="display:flex;gap:6px;padding:10px 16px">
-          <select onchange="quickStatus(${o.id}, this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-size:12px;cursor:pointer">
-            ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => `<option ${s===o.status?'selected':''} value="${s}">${s}</option>`).join('')}
-          </select>
-          <button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})">🗑</button>
-        </td>
-      </tr>
-    `).join('');
+function renderOrders(ordersToRender = null) {
+  const orders = ordersToRender || state.orders;
+  const body = document.getElementById('orders-body');
+  if (!body) return;
+  
+  if (!orders || orders.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No orders found</td></tr>';
+    return;
+  }
+  
+  body.innerHTML = orders.map(o => `
+    <tr>
+      <td><strong style="color:var(--accent)">${o.order_number}</strong></td>
+      <td>${o.customer || '—'}</td>
+      <td>${formatDate(o.order_date)}</td>
+      <td>${o.items?.length || 0} items</td>
+      <td><strong>₹${formatNum(o.total)}</strong></td>
+      <td>${badge(o.status)}</td>
+      <td style="display:flex;gap:6px;padding:10px 16px">
+        <select onchange="quickStatus(${o.id}, this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text);font-size:12px;cursor:pointer">
+          ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => `<option ${s===o.status?'selected':''} value="${s}">${s}</option>`).join('')}
+        </select>
+        <button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function filterOrders() {
-  const q = document.getElementById('order-search').value.toLowerCase();
-  const s = document.getElementById('order-status-filter').value;
+  const q = document.getElementById('order-search')?.value.toLowerCase() || '';
+  const s = document.getElementById('order-status-filter')?.value || '';
   const filtered = state.orders.filter(o =>
-    (o.order_number.toLowerCase().includes(q) || o.customer?.name?.toLowerCase().includes(q)) &&
+    (o.order_number.toLowerCase().includes(q) || (o.customer && o.customer.toLowerCase().includes(q))) &&
     (!s || o.status === s)
   );
   renderOrders(filtered);
 }
 
 async function quickStatus(id, status) {
-  await apiFetch(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
-  toast(`Order status updated to ${status}`);
-  loadOrders();
-  loadDashboard();
+  try {
+    await apiFetch(`/orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+    toast(`Order status updated to ${status}`);
+    loadOrders();
+    loadDashboard();
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 async function deleteOrder(id) {
   if (!confirm('Delete this order?')) return;
-  await apiFetch(`/orders/${id}`, { method: 'DELETE' });
-  toast('Order deleted');
-  loadOrders();
+  try {
+    await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+    toast('Order deleted');
+    loadOrders();
+    loadDashboard();
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 // Prepare Order Modal
 async function prepareOrderModal() {
-  if (!state.customers.length) state.customers = await apiFetch('/customers');
-  if (!state.products.length) state.products = await apiFetch('/products');
+  if (!state.customers.length) {
+    try {
+      state.customers = await apiFetch('/customers');
+    } catch(e) { console.error(e); }
+  }
+  if (!state.products.length) {
+    try {
+      state.products = await apiFetch('/products');
+    } catch(e) { console.error(e); }
+  }
 
-  document.getElementById('order-customer').innerHTML =
-    state.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  const customerSelect = document.getElementById('order-customer');
+  if (customerSelect && state.customers) {
+    customerSelect.innerHTML = state.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
 
-  document.getElementById('order-items-container').innerHTML = '';
-  addOrderItem();
+  const container = document.getElementById('order-items-container');
+  if (container) {
+    container.innerHTML = '';
+    addOrderItem();
+  }
 }
 
 function addOrderItem() {
   const container = document.getElementById('order-items-container');
+  if (!container || !state.products) return;
+  
   const div = document.createElement('div');
   div.className = 'item-row';
   div.innerHTML = `
@@ -1408,238 +1483,305 @@ function addOrderItem() {
     <input type="number" class="item-price" value="${state.products[0]?.price || 0}" oninput="recalcTotal()" placeholder="Price">
     <button class="remove-item" onclick="this.parentElement.remove(); recalcTotal()">×</button>
   `;
-  div.querySelector('.item-product').addEventListener('change', function() {
-    const opt = this.options[this.selectedIndex];
-    div.querySelector('.item-price').value = opt.dataset.price;
-    recalcTotal();
-  });
+  const productSelect = div.querySelector('.item-product');
+  const priceInput = div.querySelector('.item-price');
+  if (productSelect && priceInput) {
+    productSelect.addEventListener('change', function() {
+      const opt = this.options[this.selectedIndex];
+      priceInput.value = opt.dataset.price;
+      recalcTotal();
+    });
+  }
   container.appendChild(div);
   recalcTotal();
 }
 
 function recalcTotal() {
-  const tax = parseFloat(document.getElementById('order-tax').value) || 0;
-  const discount = parseFloat(document.getElementById('order-discount').value) || 0;
+  const tax = parseFloat(document.getElementById('order-tax')?.value) || 0;
+  const discount = parseFloat(document.getElementById('order-discount')?.value) || 0;
   let subtotal = 0;
   document.querySelectorAll('.item-row').forEach(row => {
-    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-    const price = parseFloat(row.querySelector('.item-price').value) || 0;
+    const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+    const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
     subtotal += qty * price;
   });
   const total = subtotal + (subtotal * tax / 100) - discount;
-  document.getElementById('order-total-preview').textContent = '₹' + formatNum(Math.max(0, total));
+  const previewEl = document.getElementById('order-total-preview');
+  if (previewEl) previewEl.textContent = '₹' + formatNum(Math.max(0, total));
 }
-
-document.getElementById('order-tax').addEventListener('input', recalcTotal);
-document.getElementById('order-discount').addEventListener('input', recalcTotal);
 
 async function submitOrder() {
   const items = [];
   let valid = true;
   document.querySelectorAll('.item-row').forEach(row => {
-    const product_id = parseInt(row.querySelector('.item-product').value);
-    const quantity = parseInt(row.querySelector('.item-qty').value);
-    const unit_price = parseFloat(row.querySelector('.item-price').value);
+    const product_id = parseInt(row.querySelector('.item-product')?.value);
+    const quantity = parseInt(row.querySelector('.item-qty')?.value);
+    const unit_price = parseFloat(row.querySelector('.item-price')?.value);
     if (!product_id || !quantity || !unit_price) { valid = false; return; }
     items.push({ product_id, quantity, unit_price });
   });
   if (!valid || items.length === 0) { toast('Please fill all item fields', 'error'); return; }
 
   const payload = {
-    customer_id: parseInt(document.getElementById('order-customer').value),
+    customer_id: parseInt(document.getElementById('order-customer')?.value),
     items,
-    tax: parseFloat(document.getElementById('order-tax').value) || 0,
-    discount: parseFloat(document.getElementById('order-discount').value) || 0,
-    notes: document.getElementById('order-notes').value,
-    delivery_date: document.getElementById('order-delivery').value || null,
+    tax: parseFloat(document.getElementById('order-tax')?.value) || 0,
+    discount: parseFloat(document.getElementById('order-discount')?.value) || 0,
+    notes: document.getElementById('order-notes')?.value || '',
+    delivery_date: document.getElementById('order-delivery')?.value || null,
   };
 
-  await apiFetch('/orders', { method: 'POST', body: JSON.stringify(payload) });
-  toast('Order created successfully!');
-  closeModal('order-modal');
-  loadOrders();
-  loadDashboard();
+  try {
+    await apiFetch('/orders', { method: 'POST', body: JSON.stringify(payload) });
+    toast('Order created successfully!');
+    closeModal('order-modal');
+    loadOrders();
+    loadDashboard();
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 // ══════════════════════════════════════════════════════
 // CUSTOMERS
 // ══════════════════════════════════════════════════════
 async function loadCustomers() {
-  state.customers = await apiFetch('/customers');
-  renderCustomers();
+  try {
+    state.customers = await apiFetch('/customers');
+    renderCustomers();
+  } catch(e) { console.error(e); }
 }
 
-function renderCustomers(data) {
-  const customers = data || state.customers;
-  document.getElementById('customers-body').innerHTML = customers.length === 0
-    ? '<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted)">No customers found</td></tr>'
-    : customers.map(c => `
-      <tr>
-        <td><strong>${c.name}</strong></td>
-        <td>${c.email}</td>
-        <td>${c.phone || '—'}</td>
-        <td>${c.city || '—'}</td>
-        <td>—</td>
-        <td style="display:flex;gap:6px;padding:10px 16px">
-          <button class="btn btn-outline btn-sm" onclick="editCustomer(${JSON.stringify(c).replace(/"/g,'&quot;')})">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">🗑</button>
-        </td>
-      </tr>
-    `).join('');
+function renderCustomers(customersToRender = null) {
+  const customers = customersToRender || state.customers;
+  const body = document.getElementById('customers-body');
+  if (!body) return;
+  
+  if (!customers || customers.length === 0) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:60px;color:var(--text-muted)">No customers found</td></tr>';
+    return;
+  }
+  
+  body.innerHTML = customers.map(c => `
+    <tr>
+      <td><strong>${escapeHtml(c.name)}</strong></td>
+      <td>${escapeHtml(c.email)}</td>
+      <td>${escapeHtml(c.phone || '—')}</td>
+      <td>${escapeHtml(c.city || '—')}</td>
+      <td>—</td>
+      <td style="display:flex;gap:6px;padding:10px 16px">
+        <button class="btn btn-outline btn-sm" onclick="editCustomer(${JSON.stringify(c).replace(/"/g, '&quot;')})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function filterCustomers() {
-  const q = document.getElementById('customer-search').value.toLowerCase();
+  const q = document.getElementById('customer-search')?.value.toLowerCase() || '';
   renderCustomers(state.customers.filter(c =>
     c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
   ));
 }
 
 function editCustomer(c) {
-  document.getElementById('customer-id').value = c.id;
-  document.getElementById('customer-name').value = c.name;
-  document.getElementById('customer-email').value = c.email;
-  document.getElementById('customer-phone').value = c.phone || '';
-  document.getElementById('customer-city').value = c.city || '';
-  document.getElementById('customer-country').value = c.country || 'India';
-  document.getElementById('customer-address').value = c.address || '';
-  document.getElementById('customer-modal-title').textContent = 'Edit Customer';
+  const idEl = document.getElementById('customer-id');
+  const nameEl = document.getElementById('customer-name');
+  const emailEl = document.getElementById('customer-email');
+  const phoneEl = document.getElementById('customer-phone');
+  const cityEl = document.getElementById('customer-city');
+  const countryEl = document.getElementById('customer-country');
+  const addressEl = document.getElementById('customer-address');
+  const titleEl = document.getElementById('customer-modal-title');
+  
+  if (idEl) idEl.value = c.id;
+  if (nameEl) nameEl.value = c.name;
+  if (emailEl) emailEl.value = c.email;
+  if (phoneEl) phoneEl.value = c.phone || '';
+  if (cityEl) cityEl.value = c.city || '';
+  if (countryEl) countryEl.value = c.country || 'India';
+  if (addressEl) addressEl.value = c.address || '';
+  if (titleEl) titleEl.textContent = 'Edit Customer';
   openModal('customer-modal');
 }
 
 async function submitCustomer() {
-  const id = document.getElementById('customer-id').value;
+  const id = document.getElementById('customer-id')?.value;
   const payload = {
-    name: document.getElementById('customer-name').value,
-    email: document.getElementById('customer-email').value,
-    phone: document.getElementById('customer-phone').value,
-    city: document.getElementById('customer-city').value,
-    country: document.getElementById('customer-country').value,
-    address: document.getElementById('customer-address').value,
+    name: document.getElementById('customer-name')?.value,
+    email: document.getElementById('customer-email')?.value,
+    phone: document.getElementById('customer-phone')?.value,
+    city: document.getElementById('customer-city')?.value,
+    country: document.getElementById('customer-country')?.value,
+    address: document.getElementById('customer-address')?.value,
   };
   if (!payload.name || !payload.email) { toast('Name and email are required', 'error'); return; }
 
-  if (id) {
-    await apiFetch(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-    toast('Customer updated!');
-  } else {
-    await apiFetch('/customers', { method: 'POST', body: JSON.stringify(payload) });
-    toast('Customer added!');
-  }
-  closeModal('customer-modal');
-  loadCustomers();
+  try {
+    if (id) {
+      await apiFetch(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast('Customer updated!');
+    } else {
+      await apiFetch('/customers', { method: 'POST', body: JSON.stringify(payload) });
+      toast('Customer added!');
+    }
+    closeModal('customer-modal');
+    loadCustomers();
+    loadDashboard();
+  } catch(e) { console.error(e); }
 }
 
 async function deleteCustomer(id) {
   if (!confirm('Delete this customer?')) return;
-  await apiFetch(`/customers/${id}`, { method: 'DELETE' });
-  toast('Customer deleted');
-  loadCustomers();
+  try {
+    await apiFetch(`/customers/${id}`, { method: 'DELETE' });
+    toast('Customer deleted');
+    loadCustomers();
+    loadDashboard();
+  } catch(e) { console.error(e); }
 }
 
 // ══════════════════════════════════════════════════════
 // PRODUCTS
 // ══════════════════════════════════════════════════════
 async function loadProducts() {
-  state.products = await apiFetch('/products');
-  renderProducts();
+  try {
+    state.products = await apiFetch('/products');
+    renderProducts();
+  } catch(e) { console.error(e); }
 }
 
-function renderProducts(data) {
-  const products = data || state.products;
-  document.getElementById('products-body').innerHTML = products.length === 0
-    ? '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No products found</td></tr>'
-    : products.map(p => `
-      <tr>
-        <td><strong>${p.name}</strong></td>
-        <td><code style="background:var(--surface2);padding:2px 8px;border-radius:6px;font-size:12px">${p.sku}</code></td>
-        <td>₹${formatNum(p.price)}</td>
-        <td>${p.cost_price ? '₹' + formatNum(p.cost_price) : '—'}</td>
-        <td>${p.stock_quantity <= p.min_stock_level ? `<span style="color:var(--danger)">⚠ ${p.stock_quantity}</span>` : p.stock_quantity}</td>
-        <td>${p.unit}</td>
-        <td style="display:flex;gap:6px;padding:10px 16px">
-          <button class="btn btn-outline btn-sm" onclick="editProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">🗑</button>
-        </td>
-      </tr>
-    `).join('');
+function renderProducts(productsToRender = null) {
+  const products = productsToRender || state.products;
+  const body = document.getElementById('products-body');
+  if (!body) return;
+  
+  if (!products || products.length === 0) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No products found</td></tr>';
+    return;
+  }
+  
+  body.innerHTML = products.map(p => `
+    <tr>
+      <td><strong>${escapeHtml(p.name)}</strong></td>
+      <td><code style="background:var(--surface2);padding:2px 8px;border-radius:6px;font-size:12px">${escapeHtml(p.sku)}</code></td>
+      <td>₹${formatNum(p.price)}</td>
+      <td>${p.cost_price ? '₹' + formatNum(p.cost_price) : '—'}</td>
+      <td>${p.stock_quantity <= p.min_stock_level ? `<span style="color:var(--danger)">⚠ ${p.stock_quantity}</span>` : p.stock_quantity}</td>
+      <td>${escapeHtml(p.unit || 'pcs')}</td>
+      <td style="display:flex;gap:6px;padding:10px 16px">
+        <button class="btn btn-outline btn-sm" onclick="editProduct(${JSON.stringify(p).replace(/"/g, '&quot;')})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function filterProducts() {
-  const q = document.getElementById('product-search').value.toLowerCase();
-  renderProducts(state.products.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
+  const q = document.getElementById('product-search')?.value.toLowerCase() || '';
+  renderProducts(state.products.filter(p => 
+    p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+  ));
 }
 
 function editProduct(p) {
-  document.getElementById('product-id').value = p.id;
-  document.getElementById('product-name').value = p.name;
-  document.getElementById('product-sku').value = p.sku;
-  document.getElementById('product-unit').value = p.unit;
-  document.getElementById('product-price').value = p.price;
-  document.getElementById('product-cost').value = p.cost_price || '';
-  document.getElementById('product-stock').value = p.stock_quantity;
-  document.getElementById('product-min-stock').value = p.min_stock_level;
-  document.getElementById('product-description').value = p.description || '';
-  document.getElementById('product-modal-title').textContent = 'Edit Product';
+  const idEl = document.getElementById('product-id');
+  const nameEl = document.getElementById('product-name');
+  const skuEl = document.getElementById('product-sku');
+  const unitEl = document.getElementById('product-unit');
+  const priceEl = document.getElementById('product-price');
+  const costEl = document.getElementById('product-cost');
+  const stockEl = document.getElementById('product-stock');
+  const minStockEl = document.getElementById('product-min-stock');
+  const descEl = document.getElementById('product-description');
+  const titleEl = document.getElementById('product-modal-title');
+  
+  if (idEl) idEl.value = p.id;
+  if (nameEl) nameEl.value = p.name;
+  if (skuEl) skuEl.value = p.sku;
+  if (unitEl) unitEl.value = p.unit || 'pcs';
+  if (priceEl) priceEl.value = p.price;
+  if (costEl) costEl.value = p.cost_price || '';
+  if (stockEl) stockEl.value = p.stock_quantity;
+  if (minStockEl) minStockEl.value = p.min_stock_level;
+  if (descEl) descEl.value = p.description || '';
+  if (titleEl) titleEl.textContent = 'Edit Product';
   openModal('product-modal');
 }
 
 async function submitProduct() {
-  const id = document.getElementById('product-id').value;
+  const id = document.getElementById('product-id')?.value;
   const payload = {
-    name: document.getElementById('product-name').value,
-    sku: document.getElementById('product-sku').value,
-    unit: document.getElementById('product-unit').value,
-    price: parseFloat(document.getElementById('product-price').value),
-    cost_price: parseFloat(document.getElementById('product-cost').value) || null,
-    stock_quantity: parseInt(document.getElementById('product-stock').value) || 0,
-    min_stock_level: parseInt(document.getElementById('product-min-stock').value) || 10,
-    description: document.getElementById('product-description').value,
+    name: document.getElementById('product-name')?.value,
+    sku: document.getElementById('product-sku')?.value,
+    unit: document.getElementById('product-unit')?.value,
+    price: parseFloat(document.getElementById('product-price')?.value),
+    cost_price: parseFloat(document.getElementById('product-cost')?.value) || null,
+    stock_quantity: parseInt(document.getElementById('product-stock')?.value) || 0,
+    min_stock_level: parseInt(document.getElementById('product-min-stock')?.value) || 10,
+    description: document.getElementById('product-description')?.value,
     category_id: null,
   };
   if (!payload.name || !payload.sku || !payload.price) { toast('Name, SKU and price are required', 'error'); return; }
 
-  if (id) {
-    await apiFetch(`/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-    toast('Product updated!');
-  } else {
-    await apiFetch('/products', { method: 'POST', body: JSON.stringify(payload) });
-    toast('Product added!');
-  }
-  closeModal('product-modal');
-  loadProducts();
+  try {
+    if (id) {
+      await apiFetch(`/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast('Product updated!');
+    } else {
+      await apiFetch('/products', { method: 'POST', body: JSON.stringify(payload) });
+      toast('Product added!');
+    }
+    closeModal('product-modal');
+    loadProducts();
+    loadDashboard();
+  } catch(e) { console.error(e); }
 }
 
 async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
-  await apiFetch(`/products/${id}`, { method: 'DELETE' });
-  toast('Product deleted');
-  loadProducts();
+  try {
+    await apiFetch(`/products/${id}`, { method: 'DELETE' });
+    toast('Product deleted');
+    loadProducts();
+    loadDashboard();
+  } catch(e) { console.error(e); }
 }
 
 // ══════════════════════════════════════════════════════
 // INVENTORY
 // ══════════════════════════════════════════════════════
 async function loadInventory() {
-  state.inventory = await apiFetch('/inventory');
-  const lowItems = state.inventory.filter(i => i.status === 'low');
-  const alert = document.getElementById('low-stock-alert');
-  if (lowItems.length > 0) {
-    alert.style.display = 'flex';
-    document.getElementById('low-stock-count').textContent = lowItems.length;
-  } else {
-    alert.style.display = 'none';
-  }
+  try {
+    state.inventory = await apiFetch('/inventory');
+    const lowItems = state.inventory.filter(i => i.status === 'low');
+    const alert = document.getElementById('low-stock-alert');
+    const lowCount = document.getElementById('low-stock-count');
+    
+    if (alert && lowCount) {
+      if (lowItems.length > 0) {
+        alert.style.display = 'flex';
+        lowCount.textContent = lowItems.length;
+      } else {
+        alert.style.display = 'none';
+      }
+    }
 
-  document.getElementById('inventory-body').innerHTML = state.inventory.length === 0
-    ? '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No inventory data</td></tr>'
-    : state.inventory.map(i => {
-        const pct = Math.min(100, Math.round(i.stock_quantity / Math.max(1, i.min_stock_level * 3) * 100));
-        const color = i.status === 'low' ? 'var(--danger)' : 'var(--success)';
-        return `
+    const body = document.getElementById('inventory-body');
+    if (!body) return;
+    
+    if (state.inventory.length === 0) {
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted)">No inventory data</td></tr>';
+      return;
+    }
+    
+    body.innerHTML = state.inventory.map(i => {
+      const pct = Math.min(100, Math.round(i.stock_quantity / Math.max(1, i.min_stock_level * 3) * 100));
+      const color = i.status === 'low' ? 'var(--danger)' : 'var(--success)';
+      return `
         <tr>
-          <td><strong>${i.name}</strong></td>
-          <td><code style="background:var(--surface2);padding:2px 8px;border-radius:6px;font-size:12px">${i.sku}</code></td>
+          <td><strong>${escapeHtml(i.name)}</strong></td>
+          <td><code style="background:var(--surface2);padding:2px 8px;border-radius:6px;font-size:12px">${escapeHtml(i.sku)}</code></td>
           <td><strong style="color:${i.status==='low'?'var(--danger)':'var(--text)'}">${i.stock_quantity}</strong></td>
           <td>${i.min_stock_level}</td>
           <td>${badge(i.status)}</td>
@@ -1649,31 +1791,162 @@ async function loadInventory() {
             </div>
           </td>
           <td>
-            <button class="btn btn-outline btn-sm" onclick="openInvModal(${i.id},'${i.name}',${i.stock_quantity})">✏️ Update</button>
+            <button class="btn btn-outline btn-sm" onclick="openInvModal(${i.id},'${escapeHtml(i.name)}',${i.stock_quantity})">✏️ Update</button>
           </td>
         </tr>`;
-      }).join('');
+    }).join('');
+  } catch(e) { console.error(e); }
 }
 
 function openInvModal(id, name, qty) {
-  document.getElementById('inv-product-id').value = id;
-  document.getElementById('inv-product-name').value = name;
-  document.getElementById('inv-quantity').value = qty;
+  const idEl = document.getElementById('inv-product-id');
+  const nameEl = document.getElementById('inv-product-name');
+  const qtyEl = document.getElementById('inv-quantity');
+  
+  if (idEl) idEl.value = id;
+  if (nameEl) nameEl.value = name;
+  if (qtyEl) qtyEl.value = qty;
   openModal('inventory-modal');
 }
 
 async function submitInventory() {
-  const id = document.getElementById('inv-product-id').value;
-  const qty = parseInt(document.getElementById('inv-quantity').value);
+  const id = document.getElementById('inv-product-id')?.value;
+  const qty = parseInt(document.getElementById('inv-quantity')?.value);
   if (isNaN(qty) || qty < 0) { toast('Invalid quantity', 'error'); return; }
-  await apiFetch(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify({ quantity: qty }) });
-  toast('Inventory updated!');
-  closeModal('inventory-modal');
-  loadInventory();
+  try {
+    await apiFetch(`/inventory/${id}`, { method: 'PUT', body: JSON.stringify({ quantity: qty }) });
+    toast('Inventory updated!');
+    closeModal('inventory-modal');
+    loadInventory();
+    loadDashboard();
+  } catch(e) { console.error(e); }
+}
+
+// ══ USERS PAGE ══════════════════════════════════════════
+async function loadUsers() {
+  const grid = document.getElementById('users-grid');
+  if (!grid) return;
+  
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</div>';
+  try {
+    const res = await fetch('/api/admin/users');
+    if (!res.ok) { grid.innerHTML = '<div style="color:var(--danger);padding:20px">Access denied</div>'; return; }
+    const users = await res.json();
+    if (!users.length) { grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No users yet. Add your first sub-admin!</div>'; return; }
+    grid.innerHTML = users.map(u => `
+      <div class="ucard" id="ucard-${u.id}">
+        <div class="ucard-top">
+          <div class="ucard-av ${u.role === 'admin' ? 'av-admin' : 'av-sub'}">${escapeHtml((u.name||'??').substring(0,2).toUpperCase())}</div>
+          <div class="ucard-info">
+            <div class="un">${escapeHtml(u.name)}</div>
+            <div class="ue">${escapeHtml(u.email)}</div>
+          </div>
+        </div>
+        <div class="ucard-meta">
+          <span class="rbadge ${u.role === 'admin' ? 'rb-admin' : 'rb-sub'}">${u.role}</span>
+          <span class="sbadge ${u.is_active ? 'sb-on' : 'sb-off'}">${u.is_active ? 'Active' : 'Inactive'}</span>
+          <span style="font-size:11px;color:var(--text-muted)">${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</span>
+        </div>
+        <div class="ucard-actions">
+          <button class="btn btn-outline btn-sm" onclick='editUserModal(${JSON.stringify(u)})'>Edit</button>
+          <button class="btn btn-sm" style="background:${u.is_active?'rgba(255,107,107,.12)':'rgba(0,212,170,.12)'};color:${u.is_active?'#ff6b6b':'#00d4aa'};border:1px solid ${u.is_active?'rgba(255,107,107,.25)':'rgba(0,212,170,.25)'}" onclick="toggleUser(${u.id}, this)">${u.is_active ? 'Disable' : 'Enable'}</button>
+          ${u.id !== CURRENT_USER.id ? `<button class="btn btn-sm" style="background:rgba(255,107,107,.12);color:#ff6b6b;border:1px solid rgba(255,107,107,.25)" onclick="deleteUser(${u.id})">Delete</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { 
+    console.error(e);
+    grid.innerHTML = '<div style="color:var(--danger);padding:20px">Error loading users</div>'; 
+  }
+}
+
+function openUserModal() {
+  const titleEl = document.getElementById('user-modal-title');
+  const idEl = document.getElementById('edit-user-id');
+  const nameEl = document.getElementById('u-name');
+  const emailEl = document.getElementById('u-email');
+  const passEl = document.getElementById('u-password');
+  const roleEl = document.getElementById('u-role');
+  const hintEl = document.getElementById('pw-hint');
+  
+  if (titleEl) titleEl.textContent = 'Add New User';
+  if (idEl) idEl.value = '';
+  if (nameEl) nameEl.value = '';
+  if (emailEl) emailEl.value = '';
+  if (passEl) passEl.value = '';
+  if (roleEl) roleEl.value = 'subadmin';
+  if (hintEl) hintEl.style.display = 'none';
+  openModal('user-modal');
+}
+
+function editUserModal(u) {
+  const titleEl = document.getElementById('user-modal-title');
+  const idEl = document.getElementById('edit-user-id');
+  const nameEl = document.getElementById('u-name');
+  const emailEl = document.getElementById('u-email');
+  const passEl = document.getElementById('u-password');
+  const roleEl = document.getElementById('u-role');
+  const hintEl = document.getElementById('pw-hint');
+  
+  if (titleEl) titleEl.textContent = 'Edit User';
+  if (idEl) idEl.value = u.id;
+  if (nameEl) nameEl.value = u.name;
+  if (emailEl) emailEl.value = u.email;
+  if (passEl) passEl.value = '';
+  if (roleEl) roleEl.value = u.role;
+  if (hintEl) hintEl.style.display = '';
+  openModal('user-modal');
+}
+
+async function saveUser() {
+  const id = document.getElementById('edit-user-id')?.value;
+  const body = {
+    name: document.getElementById('u-name')?.value.trim(),
+    email: document.getElementById('u-email')?.value.trim(),
+    password: document.getElementById('u-password')?.value,
+    role: document.getElementById('u-role')?.value
+  };
+  if (!body.name || !body.email) { toast('Name and email are required', 'error'); return; }
+  if (!id && !body.password) { toast('Password is required for new users', 'error'); return; }
+  try {
+    const url = id ? `/api/admin/users/${id}` : '/api/admin/users';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) { toast(data.detail || 'Error saving user', 'error'); return; }
+    toast(id ? 'User updated!' : 'User created!');
+    closeModal('user-modal');
+    loadUsers();
+  } catch(e) { toast('Error saving user', 'error'); }
+}
+
+async function toggleUser(id, btn) {
+  try {
+    const res = await fetch(`/api/admin/users/${id}/toggle`, { method: 'PATCH' });
+    const data = await res.json();
+    toast(data.is_active ? 'User enabled' : 'User disabled');
+    loadUsers();
+  } catch(e) { toast('Error', 'error'); }
+}
+
+async function deleteUser(id) {
+  if (!confirm('Delete this user? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+    if (!res.ok) { const d = await res.json(); toast(d.detail || 'Error', 'error'); return; }
+    toast('User deleted');
+    loadUsers();
+  } catch(e) { toast('Error', 'error'); }
 }
 
 // ── HELPERS ────────────────────────────────────────────
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function formatNum(n) {
+  if (!n && n !== 0) return '0';
   if (n >= 100000) return (n / 100000).toFixed(1) + 'L';
   if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
   return parseFloat(n).toFixed(0);
@@ -1688,21 +1961,6 @@ function badge(status) {
   const icons = { pending:'🕐', confirmed:'✔', processing:'⚙', shipped:'🚚', delivered:'✅', cancelled:'❌', low:'⚠️', ok:'✓' };
   return `<span class="badge badge-${status}">${icons[status]||''} ${status}</span>`;
 }
-
-
-// ══ AUTH ══════════════════════════════════════════════
-const TOKEN = localStorage.getItem('erp_token');
-const CURRENT_USER = JSON.parse(localStorage.getItem('erp_user') || 'null');
-if (!TOKEN || !CURRENT_USER) { window.location.href = '/login'; }
-
-// Patch fetch to always send Bearer token
-const _origFetch = window.fetch;
-window.fetch = function(url, opts = {}) {
-  if (typeof url === 'string' && url.startsWith('/api')) {
-    opts.headers = Object.assign({}, opts.headers || {}, { 'Authorization': 'Bearer ' + TOKEN });
-  }
-  return _origFetch(url, opts);
-};
 
 // ══ THEME ══════════════════════════════════════════════
 (function() {
@@ -1744,169 +2002,18 @@ function doLogout() {
   }
 })();
 
-// ══ USERS PAGE ══════════════════════════════════════════
-async function loadUsers() {
-  const grid = document.getElementById('users-grid');
-  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading...</div>';
-  try {
-    const res = await fetch('/api/admin/users');
-    if (!res.ok) { grid.innerHTML = '<div style="color:var(--danger);padding:20px">Access denied</div>'; return; }
-    const users = await res.json();
-    if (!users.length) { grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No users yet. Add your first sub-admin!</div>'; return; }
-    grid.innerHTML = users.map(u => `
-      <div class="ucard" id="ucard-${u.id}">
-        <div class="ucard-top">
-          <div class="ucard-av ${u.role === 'admin' ? 'av-admin' : 'av-sub'}">${(u.name||'??').substring(0,2).toUpperCase()}</div>
-          <div class="ucard-info">
-            <div class="un">${escHtml(u.name)}</div>
-            <div class="ue">${escHtml(u.email)}</div>
-          </div>
-        </div>
-        <div class="ucard-meta">
-          <span class="rbadge ${u.role === 'admin' ? 'rb-admin' : 'rb-sub'}">${u.role}</span>
-          <span class="sbadge ${u.is_active ? 'sb-on' : 'sb-off'}">${u.is_active ? 'Active' : 'Inactive'}</span>
-          <span style="font-size:11px;color:var(--text-muted)">${u.created_at ? new Date(u.created_at).toLocaleDateString() : ''}</span>
-        </div>
-        <div class="ucard-actions">
-          <button class="btn btn-outline btn-sm" onclick='editUserModal(${JSON.stringify(u)})'>Edit</button>
-          <button class="btn btn-sm" style="background:${u.is_active?'rgba(255,107,107,.12)':'rgba(0,212,170,.12)'};color:${u.is_active?'#ff6b6b':'#00d4aa'};border:1px solid ${u.is_active?'rgba(255,107,107,.25)':'rgba(0,212,170,.25)'}" onclick="toggleUser(${u.id}, this)">${u.is_active ? 'Disable' : 'Enable'}</button>
-          ${u.id !== CURRENT_USER.id ? `<button class="btn btn-sm" style="background:rgba(255,107,107,.12);color:#ff6b6b;border:1px solid rgba(255,107,107,.25)" onclick="deleteUser(${u.id})">Delete</button>` : ''}
-        </div>
-      </div>
-    `).join('');
-  } catch(e) { grid.innerHTML = '<div style="color:var(--danger);padding:20px">Error loading users</div>'; }
-}
-
-function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function openUserModal() {
-  document.getElementById('user-modal-title').textContent = 'Add New User';
-  document.getElementById('edit-user-id').value = '';
-  document.getElementById('u-name').value = '';
-  document.getElementById('u-email').value = '';
-  document.getElementById('u-password').value = '';
-  document.getElementById('u-role').value = 'subadmin';
-  document.getElementById('pw-hint').style.display = 'none';
-  openModal('user-modal');
-}
-
-function editUserModal(u) {
-  document.getElementById('user-modal-title').textContent = 'Edit User';
-  document.getElementById('edit-user-id').value = u.id;
-  document.getElementById('u-name').value = u.name;
-  document.getElementById('u-email').value = u.email;
-  document.getElementById('u-password').value = '';
-  document.getElementById('u-role').value = u.role;
-  document.getElementById('pw-hint').style.display = '';
-  openModal('user-modal');
-}
-
-async function saveUser() {
-  const id = document.getElementById('edit-user-id').value;
-  const body = {
-    name: document.getElementById('u-name').value.trim(),
-    email: document.getElementById('u-email').value.trim(),
-    password: document.getElementById('u-password').value,
-    role: document.getElementById('u-role').value
-  };
-  if (!body.name || !body.email) { toast('Name and email are required', 'error'); return; }
-  if (!id && !body.password) { toast('Password is required for new users', 'error'); return; }
-  try {
-    const url = id ? `/api/admin/users/${id}` : '/api/admin/users';
-    const method = id ? 'PUT' : 'POST';
-    const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    const data = await res.json();
-    if (!res.ok) { toast(data.detail || 'Error saving user', 'error'); return; }
-    toast(id ? 'User updated!' : 'User created!');
-    closeModal('user-modal');
-    loadUsers();
-  } catch(e) { toast('Error saving user', 'error'); }
-}
-
-async function toggleUser(id, btn) {
-  try {
-    const res = await fetch(`/api/admin/users/${id}/toggle`, { method: 'PATCH' });
-    const data = await res.json();
-    toast(data.is_active ? 'User enabled' : 'User disabled');
-    loadUsers();
-  } catch(e) { toast('Error', 'error'); }
-}
-
-async function deleteUser(id) {
-  if (!confirm('Delete this user? This cannot be undone.')) return;
-  try {
-    const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
-    if (!res.ok) { const d = await res.json(); toast(d.detail || 'Error', 'error'); return; }
-    toast('User deleted');
-    loadUsers();
-  } catch(e) { toast('Error', 'error'); }
-}
+// Add event listeners for filters
+document.getElementById('order-search')?.addEventListener('input', filterOrders);
+document.getElementById('order-status-filter')?.addEventListener('change', filterOrders);
+document.getElementById('customer-search')?.addEventListener('input', filterCustomers);
+document.getElementById('product-search')?.addEventListener('input', filterProducts);
+document.getElementById('order-tax')?.addEventListener('input', recalcTotal);
+document.getElementById('order-discount')?.addEventListener('input', recalcTotal);
 
 // ── INIT ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-async function loadDashboard() {
-  try {
-    const [stats, revenue, recent] = await Promise.all([
-      apiFetch('/dashboard/stats'),
-      apiFetch('/dashboard/monthly-revenue'),
-      apiFetch('/dashboard/recent-orders')
-    ]);
-
-    console.log("Dashboard:", stats);
-
-    // ✅ FIX FIELD MAPPING
-    document.getElementById('stat-orders').textContent = stats.orders || 0;
-    document.getElementById('stat-revenue').textContent =
-      '₹' + Number(stats.revenue || 0).toLocaleString();
-    document.getElementById('stat-customers').textContent = stats.customers || 0;
-    document.getElementById('stat-products').textContent = stats.products || 0;
-
-    // temporary defaults
-    document.getElementById('stat-lowstock').textContent = 0;
-    document.getElementById('stat-pending').textContent = 0;
-    document.getElementById('stat-delivered').textContent = 0;
-    document.getElementById('stat-cancelled').textContent = 0;
-    document.getElementById('pending-badge').textContent = 0;
-
-    // ✅ SAFE CHART
-    const months = Object.keys(revenue || {});
-    const revenues = months.map(m => revenue[m]?.revenue || 0);
-
-    if (state.revenueChart) state.revenueChart.destroy();
-
-    state.revenueChart = new Chart(
-      document.getElementById('revenue-chart'),
-      {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: 'Revenue',
-            data: revenues
-          }]
-        }
-      }
-    );
-
-    // ✅ SAFE RECENT ORDERS
-    document.getElementById('recent-orders-body').innerHTML =
-      (recent && recent.length)
-        ? recent.map(o => `
-          <tr>
-            <td>${o.order_number}</td>
-            <td>${o.customer?.name || '-'}</td>
-            <td>${o.order_date || '-'}</td>
-            <td>₹${o.total || 0}</td>
-            <td>${o.status}</td>
-            <td>-</td>
-          </tr>
-        `).join('')
-        : `<tr><td colspan="6" style="text-align:center">No Orders</td></tr>`;
-
-  } catch (e) {
-    console.error("Dashboard Error:", e);
-  }
-}
+  loadDashboard();
+});
 </script>
 </body>
 </html>
