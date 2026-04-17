@@ -7,7 +7,7 @@ from database import SessionLocal, engine
 import os, hashlib, hmac, base64, json
 from datetime import datetime
 from collections import defaultdict
-from models import Product, OrderItem,Customer
+from models import Product, OrderItem,Customer,Order
 from sqlalchemy import text
 from fastapi import Depends
 from sqlalchemy.orm import Session
