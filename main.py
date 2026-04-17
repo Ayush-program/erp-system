@@ -7,6 +7,7 @@ from database import SessionLocal, engine
 import os, hashlib, hmac, base64, json
 from datetime import datetime
 from collections import defaultdict
+from models import Product, OrderItem
 
 # ─── INIT DB ─────────────────────────────────────────────
 models.Base.metadata.create_all(bind=engine)
