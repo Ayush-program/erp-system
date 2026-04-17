@@ -170,12 +170,33 @@ def update_product(product_id: int, req: dict, db: Session = Depends(get_db)):
 
 @app.delete("/api/products/{product_id}")
 def delete_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+
+    product = db.query(Product).filter(Product.id == product_id).first()
+
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+
+    # 🔍 Check order items using this product
+    order_items = db.query(OrderItem).filter(
+        OrderItem.product_id == product_id
+    ).all()
+
+    if order_items:
+        statuses = [item.order.status for item in order_items]
+
+        active_orders = [s for s in statuses if s not in ["delivered", "cancelled"]]
+
+        if active_orders:
+            raise HTTPException(
+                status_code=400,
+                detail="Product is in active orders (pending/processing). Cannot delete."
+            )
+
+    # ✅ Safe to delete
     db.delete(product)
     db.commit()
-    return {"message": "Product deleted"}
+
+    return {"message": "Product deleted successfully"}
 
 # ─── DASHBOARD ──────────────────────────────────────────
 @app.get("/api/dashboard/stats")
