@@ -177,7 +177,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # 🔍 Check order items using this product
+    # Check order items
     order_items = db.query(OrderItem).filter(
         OrderItem.product_id == product_id
     ).all()
@@ -190,14 +190,17 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
         if active_orders:
             raise HTTPException(
                 status_code=400,
-                detail="Product is in active orders (pending/processing). Cannot delete."
+                 detail="Product is in active orders (pending/processing). Cannot delete."
             )
 
-    # ✅ Safe to delete
-    db.delete(product)
+    # 🔥 IMPORTANT CHANGE → DO NOT DELETE
+    product.is_deleted = True
+
     db.commit()
 
-    return {"message": "Product deleted successfully"}
+    return {"message": "Product marked as deleted"}
+
+
 
 # ─── DASHBOARD ──────────────────────────────────────────
 @app.get("/api/dashboard/stats")
