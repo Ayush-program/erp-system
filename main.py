@@ -112,7 +112,7 @@ def create_customer(req: dict, db: Session = Depends(get_db)):
 
 @app.get("/api/customers")
 def get_customers(db: Session = Depends(get_db)):
-    return db.query(models.Customer).all()
+    return db.query(Customer).filter(Customer.is_deleted == False).all()
 
 @app.put("/api/customers/{customer_id}")
 def update_customer(customer_id: int, req: dict, db: Session = Depends(get_db)):
@@ -130,12 +130,32 @@ def update_customer(customer_id: int, req: dict, db: Session = Depends(get_db)):
 
 @app.delete("/api/customers/{customer_id}")
 def delete_customer(customer_id: int, db: Session = Depends(get_db)):
-    customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
+
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
-    db.delete(customer)
+
+    # 🔍 Check orders
+    orders = db.query(Order).filter(Order.customer_id == customer_id).all()
+
+    if orders:
+        statuses = [order.status for order in orders]
+
+        # ❌ Active orders check
+        active_orders = [s for s in statuses if s not in ["delivered", "cancelled"]]
+
+        if active_orders:
+            raise HTTPException(
+                status_code=400,
+                detail="Customer has active orders (pending/processing). Cannot delete."
+            )
+
+    # ✅ Soft delete
+    customer.is_deleted = True
     db.commit()
-    return {"message": "Customer deleted"}
+
+    return {"message": "Customer deleted (hidden)"}
 
 # ─── PRODUCTS ───────────────────────────────────────────
 @app.post("/api/products")
