@@ -461,6 +461,14 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 def test():
     return {"status": "ERP running successfully 🚀"}
 
+from sqlalchemy import text
+
+@app.get("/fix-db")
+def fix_db(db: Session = Depends(get_db)):
+    db.execute(text("ALTER TABLE products ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE"))
+    db.commit()
+    return {"message": "Column added successfully"}
+
 
 if __name__ == "__main__":
     import uvicorn
