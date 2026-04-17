@@ -461,7 +461,20 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 def test():
     return {"status": "ERP running successfully 🚀"}
 
-from sqlalchemy import text
+@app.get("/fix-db")
+def fix_db(db: Session = Depends(get_db)):
+    try:
+        # Add column to customers table
+        db.execute(text(
+            "ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE"
+        ))
+
+        db.commit()
+
+        return {"message": "Database fixed successfully (columns added)"}
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 if __name__ == "__main__":
