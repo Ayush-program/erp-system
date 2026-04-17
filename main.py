@@ -8,6 +8,9 @@ import os, hashlib, hmac, base64, json
 from datetime import datetime
 from collections import defaultdict
 from models import Product, OrderItem
+from sqlalchemy import text
+from fastapi import Depends
+from sqlalchemy.orm import Session
 
 # ─── INIT DB ─────────────────────────────────────────────
 models.Base.metadata.create_all(bind=engine)
