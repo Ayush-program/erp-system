@@ -67,6 +67,7 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     unit = Column(String(50), default="pcs")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_deleted = Column(Boolean, default=False)
 
     category = relationship("Category", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
