@@ -155,7 +155,7 @@ def create_product(req: dict, db: Session = Depends(get_db)):
 
 @app.get("/api/products")
 def get_products(db: Session = Depends(get_db)):
-    return db.query(models.Product).all()
+    return db.query(Product).filter(Product.is_deleted == False).all()
 
 @app.put("/api/products/{product_id}")
 def update_product(product_id: int, req: dict, db: Session = Depends(get_db)):
