@@ -41,6 +41,7 @@ class Customer(Base):
     city = Column(String(100))
     country = Column(String(100), default="India")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_deleted = Column(Boolean, default=False)
 
     orders = relationship("Order", back_populates="customer")
 
