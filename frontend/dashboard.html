@@ -1,0 +1,3399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishna Poly Net — Order Management System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── Dark theme (default) ───────────────────────────── */
+    :root {
+      --bg: #0a0c12;
+      --surface: #111420;
+      --surface2: #181d2e;
+      --border: #1f2640;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --accent3: #ff6b6b;
+      --accent4: #ffa94d;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --text-sub: #6b7494;
+      --success: #00d4aa;
+      --warning: #ffa94d;
+      --danger: #ff6b6b;
+      --pending: #6c63ff;
+    }
+
+    /* ── Light theme override ────────────────────────────── */
+    [data-theme="light"] {
+      --bg: #f0f2f8;
+      --surface: #ffffff;
+      --surface2: #eef0f8;
+      --border: #dde0ef;
+      --accent: #5a52e0;
+      --accent2: #00b896;
+      --accent3: #e0504f;
+      --accent4: #e08a28;
+      --text: #1a1f36;
+      --text-muted: #6b728e;
+      --text-sub: #4a5068;
+      --success: #00b896;
+      --warning: #e08a28;
+      --danger: #e0504f;
+      --pending: #5a52e0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-mark {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .nav {
+      flex: 1;
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .nav-section-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 12px 12px 6px;
+      margin-top: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-sub);
+      transition: all .2s;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(108, 99, 255, .15), rgba(0, 212, 170, .1));
+      border-color: rgba(108, 99, 255, .3);
+      color: var(--text);
+    }
+
+    .nav-item .icon {
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.05);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: capitalize;
+    }
+
+    .side-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .side-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .side-btn:hover {
+      border-color: var(--text-muted);
+    }
+
+    .side-logout {
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.2);
+      color: var(--danger);
+    }
+
+    .side-logout:hover {
+      background: rgba(255, 107, 107, 0.2);
+    }
+
+    .main {
+      flex: 1;
+      margin-left: 260px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 70px;
+      padding: 0 40px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 40px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn .3s ease forwards;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── Cards & Grid ───────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .stat-card.approved::before { background: var(--success); }
+    .stat-card.pending::before { background: var(--pending); }
+    .stat-card.warning::before { background: var(--warning); }
+    .stat-card.danger::before { background: var(--danger); }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .stat-icon {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      font-size: 32px;
+      opacity: 0.15;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── Buttons ────────────────────────────────────────── */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #5b52e0;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface2);
+      border-color: var(--text-muted);
+    }
+
+    .btn-danger {
+      background: rgba(255,107,107,0.1);
+      border-color: rgba(255,107,107,0.2);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    /* ── Tables ─────────────────────────────────────────── */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ── Badges ─────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-pending          { background: rgba(108,99,255,0.15); color: var(--pending); }
+    .badge-ok               { background: rgba(0,212,170,0.15); color: var(--success); }
+    .badge-warning          { background: rgba(255,169,77,0.15); color: var(--warning); }
+    .badge-danger           { background: rgba(255,107,107,0.15); color: var(--danger); }
+    .badge-info             { background: rgba(108,99,255,0.15); color: var(--pending); }
+    /* New 3-dept workflow status badges */
+    .badge-order_confirmed  { background: rgba(108,99,255,0.18); color: #a29bfe; }
+    .badge-payment_received { background: rgba(0,212,170,0.18); color: var(--success); }
+    .badge-ready_to_process { background: rgba(255,169,77,0.2); color: var(--warning); }
+    .badge-start_processing { background: rgba(253,121,168,0.18); color: #fd79a8; }
+    .badge-ready_to_dispatch{ background: rgba(0,206,201,0.18); color: #00cec9; }
+    .badge-dispatched       { background: rgba(0,212,170,0.22); color: #00d4aa; font-weight: 800; }
+    .badge-paused           { background: rgba(255,169,77,0.12); color: var(--text-muted); }
+    .badge-other            { background: rgba(99,110,114,0.18); color: #b2bec3; }
+    .badge-cancelled        { background: rgba(255,107,107,0.18); color: var(--danger); }
+    .badge-completed        { background: rgba(0,212,170,0.22); color: #00d4aa; }
+    .badge-need_purchase    { background: rgba(255,169,77,0.15); color: var(--warning); }
+    .badge-inventory_approved { background: rgba(0,212,170,0.15); color: var(--success); }
+    .badge-manufacturing    { background: rgba(253,121,168,0.15); color: #fd79a8; }
+    .badge-manufactured     { background: rgba(0,206,201,0.15); color: #00cec9; }
+    /* Sub-tabs for orders page */
+    .order-subtabs { display:flex; gap:0; margin-bottom:16px; border-bottom:2px solid var(--border); }
+    .order-subtab-btn {
+      padding: 10px 22px; font-size:13px; font-weight:600; cursor:pointer;
+      background:none; border:none; color:var(--text-muted); border-bottom:3px solid transparent;
+      margin-bottom:-2px; transition: all 0.2s;
+    }
+    .order-subtab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .order-subtab-btn:hover { color:var(--text); }
+
+    /* ── Toolbar & Forms ────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 320px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box span {
+      position: absolute;
+      left: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: all .2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-select {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* ── Modals ─────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5,6,10,0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      transform: scale(0.95);
+      transition: all 0.25s ease;
+    }
+
+    .modal-overlay.open .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 0 0 20px 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 3fr 1fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    /* ── Timeline ───────────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+      margin-top: 15px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 5px;
+      bottom: 5px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .timeline-badge {
+      position: absolute;
+      left: -24px;
+      top: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 3px solid var(--accent);
+    }
+
+    .timeline-item.success .timeline-badge { border-color: var(--success); }
+    .timeline-item.danger .timeline-badge { border-color: var(--danger); }
+    .timeline-item.warning .timeline-badge { border-color: var(--warning); }
+
+    .timeline-content {
+      background: var(--surface2);
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.9em;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .timeline-user {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 0.9em;
+    }
+
+    .timeline-time {
+      font-size: 0.8em;
+      color: var(--text-muted);
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .timeline-remarks {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      white-space: pre-wrap;
+    }
+
+    /* Toast container */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+      color: var(--text);
+      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease forwards;
+    }
+
+    .toast.error { border-color: var(--danger); }
+    .toast.success { border-color: var(--success); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; }
+    }
+
+    /* Reports tab buttons */
+    .report-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .report-tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .report-tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">◈ Krishna Poly Net</div>
+        <div class="logo-sub">Order & Materials Portal</div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section-label" id="lbl-ov">Overview</div>
+        <a class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+          <span class="icon">⬡</span> Dashboard
+        </a>
+
+        <div class="nav-section-label" id="lbl-op">Operations</div>
+        <a class="nav-item" id="nav-orders" onclick="navigate('orders')" style="display:none">
+          <span class="icon">📦</span> Orders
+          <span class="nav-badge" id="pending-badge">0</span>
+        </a>
+        <a class="nav-item" id="nav-customers" onclick="navigate('customers')" style="display:none">
+          <span class="icon">👥</span> Customers
+        </a>
+        <a class="nav-item" id="nav-products" onclick="navigate('products')" style="display:none">
+          <span class="icon">🏷️</span> Products
+        </a>
+        <a class="nav-item" id="nav-materials" onclick="navigate('materials')" style="display:none">
+          <span class="icon">🪵</span> Materials
+        </a>
+        <a class="nav-item" id="nav-inventory" onclick="navigate('inventory')" style="display:none">
+          <span class="icon">📊</span> Inventory
+        </a>
+        <a class="nav-item" id="nav-manufacturing" onclick="navigate('manufacturing')" style="display:none">
+          <span class="icon">⚙️</span> Manufacturing
+        </a>
+        <a class="nav-item" id="nav-reports" onclick="navigate('reports')" style="display:none">
+          <span class="icon">📈</span> Reports
+        </a>
+
+        <div class="nav-section-label" id="admin-section" style="display:none">Administration</div>
+        <a class="nav-item" id="nav-users" onclick="navigate('users')" style="display:none">
+          <span class="icon">🛡️</span> User Management
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="user-avatar">AD</div>
+          <div>
+            <div class="user-name" id="sidebar-username">Admin</div>
+            <div class="user-role" id="sidebar-role">Administrator</div>
+          </div>
+        </div>
+        <div class="side-btns">
+          <button class="side-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+          <button class="side-btn side-logout" onclick="doLogout()">🚪 Logout</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="page-title" id="page-title">Dashboard</div>
+        <div class="topbar-actions" id="topbar-action"></div>
+      </div>
+
+      <div class="content">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Total Orders</div>
+              <div class="stat-value" id="stat-orders">—</div>
+              <div class="stat-icon">📦</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Revenue</div>
+              <div class="stat-value" id="stat-revenue">—</div>
+              <div class="stat-icon">💰</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Customers</div>
+              <div class="stat-value" id="stat-customers">—</div>
+              <div class="stat-icon">👥</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Low Stock Alerts</div>
+              <div class="stat-value" id="stat-lowstock">—</div>
+              <div class="stat-icon">⚠️</div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-title" style="margin-bottom: 15px;">Order Workflow Status Breakdown</div>
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+              <div class="stat-card pending">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-pending">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Confirmed</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-confirmed">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Payment Rcvd</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-payment">0</div>
+              </div>
+              <div class="stat-card warning">
+                <div class="stat-label">Ready Process</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-ready">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Processing</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-processing">0</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Ready Dispatch</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-dispatch">0</div>
+              </div>
+              <div class="stat-card success">
+                <div class="stat-label">Dispatched</div>
+                <div class="stat-value" style="font-size:22px" id="stat-p-dispatched">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Monthly Revenue</div>
+              </div>
+              <div class="card-body"><canvas id="revenue-chart" height="200"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Recent Orders</div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Delivery Date</th>
+                      <th>Total Value</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-orders-body">
+                    <tr>
+                      <td colspan="5" class="empty-state">Loading recent orders...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div class="page" id="page-orders">
+          <!-- Sub-tabs -->
+          <div class="order-subtabs">
+            <button class="order-subtab-btn active" id="tab-active-orders" onclick="switchOrderTab('active')">📋 Active Orders</button>
+            <button class="order-subtab-btn" id="tab-completed-orders" onclick="switchOrderTab('completed')">✅ Completed Orders</button>
+          </div>
+          <!-- Active Orders -->
+          <div id="panel-active-orders">
+            <div class="toolbar">
+              <div class="search-box"><span>🔍</span><input type="text" placeholder="Search orders..." id="order-search"></div>
+              <select class="filter-select" id="order-status-filter" onchange="loadOrders()">
+                <option value="">All Active</option>
+                <option value="pending">Pending</option>
+                <option value="order_confirmed">Order Confirmed</option>
+                <option value="payment_received">Payment Received</option>
+                <option value="ready_to_process">Ready to Process</option>
+                <option value="start_processing">Start Processing</option>
+                <option value="ready_to_dispatch">Ready to Dispatch</option>
+                <option value="paused">Paused</option>
+                <option value="other">Other</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Delivery</th>
+                      <th>Total (₹)</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orders-body">
+                    <tr><td colspan="7" class="empty-state">No orders found.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Completed Orders -->
+          <div id="panel-completed-orders" style="display:none;">
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Delivery</th>
+                      <th>Total (₹)</th>
+                      <th>Dispatched Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="completed-orders-body">
+                    <tr><td colspan="7" class="empty-state">No completed orders yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customers Page -->
+        <div class="page" id="page-customers">
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>GST Number</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-body">
+                  <tr>
+                    <td colspan="6" class="empty-state">No customers registered yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Page -->
+        <div class="page" id="page-products">
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product SKU</th>
+                    <th>Product Name</th>
+                    <th>Unit</th>
+                    <th>Selling Price</th>
+                    <th>Product Type</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="products-body">
+                  <tr>
+                    <td colspan="6" class="empty-state">No products registered yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Materials Page -->
+        <div class="page" id="page-materials">
+          <div class="toolbar">
+            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search materials..." id="material-search" oninput="loadMaterials()"></div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Material Name</th>
+                    <th>Unit</th>
+                    <th>Rate (Rs)</th>
+                    <th>Stock Qty</th>
+                    <th>Min Level</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="materials-body">
+                  <tr>
+                    <td colspan="8" class="empty-state">No raw materials defined.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Page (Product-wise Material Stock View) -->
+        <div class="page" id="page-inventory">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📦 Material Stock — Product Wise</div>
+            </div>
+            <div id="inventory-product-list">
+              <div class="empty-state">Loading material stock...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manufacturing Page -->
+        <div class="page" id="page-manufacturing">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🏭 Manufacturing Order Queue</div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Products</th>
+                    <th>Delivery</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="manufacturing-body">
+                  <tr>
+                    <td colspan="7" class="empty-state">No orders in manufacturing pipeline.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div class="page" id="page-reports">
+          <div class="report-tabs">
+            <button class="report-tab-btn active" onclick="switchReportTab('order')">📦 Order Report</button>
+            <button class="report-tab-btn" onclick="switchReportTab('manufacturing')">🏭 Manufacturing Logs</button>
+            <button class="report-tab-btn" onclick="switchReportTab('inventory')">📊 Raw Inventory Valuation</button>
+            <button class="report-tab-btn" onclick="switchReportTab('consumption')">🪵 Material Consumption</button>
+            <button class="report-tab-btn" onclick="switchReportTab('customer')">👥 Customer Analytics</button>
+          </div>
+
+          <div class="card" id="report-view-container">
+            <div class="empty-state">Select a report tab above to display data.</div>
+          </div>
+        </div>
+
+        <!-- Users Page -->
+        <div class="page" id="page-users">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">User Account Registry</div>
+              <button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>
+            </div>
+            <div id="users-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+              <div class="empty-state">Loading users...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Modal -->
+  <div class="modal-overlay" id="customer-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="customer-modal-title">Add Customer</div>
+        <button class="modal-close" onclick="closeModal('customer-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="customer-id">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Customer Full Name</label>
+            <input type="text" id="customer-name" placeholder="e.g. Acme Corp">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="customer-email" placeholder="client@corp.com">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="customer-phone" placeholder="10-digit number" maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="customer-city" placeholder="City location">
+          </div>
+          <div class="form-group">
+            <label>GST Number</label>
+            <input type="text" id="customer-gst" placeholder="e.g. 24ABCDE1234F1Z5" style="text-transform:uppercase">
+          </div>
+          <div class="form-group full">
+            <label>Billing Address</label>
+            <textarea id="customer-address" placeholder="Full address particulars"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('customer-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCustomer()">Save Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="product-modal-title">Add Product</div>
+        <button class="modal-close" onclick="closeModal('product-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="product-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="product-name" placeholder="e.g. PVC Window Profile">
+          </div>
+          <div class="form-group">
+            <label>SKU Code</label>
+            <input type="text" id="product-sku" placeholder="SKU-XXX">
+          </div>
+          <div class="form-group">
+            <label>Price (Selling price per unit)</label>
+            <input type="number" id="product-price" min="0" step="any" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <input type="text" id="product-unit" placeholder="pcs, meters, kg">
+          </div>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea id="product-description" placeholder="Brief particulars..."></textarea>
+          </div>
+        </div>
+
+        <!-- Product BOM Recipe -->
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="font-weight: 700; font-size: 14px;">BOM Specifications (Raw Materials Recipe)</div>
+            <button class="btn btn-outline btn-sm" type="button" onclick="addProductBOMRow()">+ Add Material</button>
+          </div>
+          <div style="max-height: 200px; overflow-y: auto;">
+            <table class="data-table" style="font-size:12px; margin-top:5px; width:100%;">
+              <thead>
+                <tr>
+                  <th>Raw Material</th>
+                  <th style="width:100px; text-align:left; padding-left:10px;">Unit</th>
+                  <th style="width:120px;">Qty per Product</th>
+                  <th style="width:120px;">Rate / Price</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="product-bom-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitProduct()">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Materials Modal (Admin Add/Edit Catalog) -->
+  <div class="modal-overlay" id="material-modal">
+    <div class="modal" style="max-width: 440px">
+      <div class="modal-header">
+        <div class="modal-title" id="material-modal-title">Add Raw Material</div>
+        <button class="modal-close" onclick="closeModal('material-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mat-id">
+        <div class="form-group">
+          <label>Material Name</label>
+          <input type="text" id="mat-name" placeholder="e.g. Steel Bar">
+        </div>
+        <div class="form-group">
+          <label>Material Unique Code</label>
+          <input type="text" id="mat-code" placeholder="MAT-XXX">
+        </div>
+        <div class="form-group">
+          <label>Unit of Measure</label>
+          <input type="text" id="mat-unit" placeholder="kg, pcs, liters">
+        </div>
+        <div class="form-group">
+          <label>Rate (per Unit)</label>
+          <input type="number" id="mat-rate" placeholder="0.00" min="0" step="any">
+        </div>
+        <div class="form-group">
+          <label>Initial Stock Qty</label>
+          <input type="number" id="mat-stock" placeholder="0.00" min="0" step="any">
+        </div>
+        <div class="form-group">
+          <label>Minimum stock alert level</label>
+          <input type="number" id="mat-min-level" placeholder="10.00" min="0" step="any">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('material-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitMaterialMaster()">Save Material</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restock/Purchase Modal -->
+  <div class="modal-overlay" id="restock-modal">
+    <div class="modal" style="max-width: 380px;">
+      <div class="modal-header">
+        <div class="modal-title">Purchase / Restock Raw Material</div>
+        <button class="modal-close" onclick="closeModal('restock-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="restock-mat-id">
+        <div class="form-group">
+          <label>Material Name</label>
+          <input type="text" id="restock-mat-name" readonly style="background:var(--surface);">
+        </div>
+        <div class="form-group">
+          <label>Quantity to Purchase</label>
+          <input type="number" id="restock-qty" min="0.0001" step="any" placeholder="Enter qty to restock">
+        </div>
+        <div class="form-group">
+          <label>Purchase remarks</label>
+          <input type="text" id="restock-remarks" placeholder="Vendor details, invoice info...">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('restock-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRestock()">Submit Purchase</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Creation / Modification Modal -->
+  <div class="modal-overlay" id="order-modal">
+    <div class="modal" style="max-width: 900px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title" id="order-modal-title">Create Customer Order</div>
+        <button class="modal-close" onclick="closeModal('order-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="order-id">
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer Name</label>
+            <select id="order-customer" style="width: 100%;"></select>
+          </div>
+          <div class="form-group">
+            <label>Requested Delivery Date</label>
+            <input type="date" id="order-delivery">
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="order-priority">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Order Remarks</label>
+            <input type="text" id="order-desc" placeholder="Special execution notes...">
+          </div>
+        </div>
+
+        <!-- 1. Finished Good Product Ordered Grid (including nested raw materials BOM grids) -->
+        <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+            <div style="font-weight: 700; font-size: 14px;">1. Product Line Items & Custom Materials BOM</div>
+            <button class="btn btn-outline btn-sm" onclick="addOrderProductRow()">+ Add Product</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr auto; gap:10px; margin-bottom: 5px; font-weight: bold; font-size: 11px; color: var(--text-muted); padding: 0 15px;">
+            <div>Product</div>
+            <div>Unit</div>
+            <div>Qty</div>
+            <div>Price (₹)</div>
+            <div>Amount (₹)</div>
+            <div style="width: 30px;"></div>
+          </div>
+          <div id="order-products-container"></div>
+        </div>
+
+
+
+        <!-- Summary Total Preview -->
+        <div style="margin-top: 20px; background: var(--surface2); padding: 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
+          <span style="font-size:13px; color:var(--text-muted);">Calculated Grand Total:</span>
+          <strong id="order-total-preview" style="font-size: 18px; color: var(--accent2);">₹0.00</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('order-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitOrder()">Save Customer Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Details & Timeline History Modal -->
+  <div class="modal-overlay" id="order-details-modal">
+    <div class="modal" style="max-width: 950px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title" id="order-details-title">Order Particulars: ORD-XXXXXX</div>
+        <button class="modal-close" onclick="closeModal('order-details-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="details-order-id">
+        
+        <!-- Info Cards Grid -->
+        <div class="grid-2" style="margin-bottom: 20px;">
+          <div class="card" style="padding: 16px; margin-bottom: 0;">
+            <div style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Customer & Delivery Details</div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 13px;">
+              <div><strong>Client:</strong> <span id="details-customer-name">-</span></div>
+              <div><strong>Delivery Target:</strong> <span id="details-delivery-date">-</span></div>
+              <div><strong>Remarks:</strong> <span id="details-description-text">-</span></div>
+            </div>
+          </div>
+          <div class="card" style="padding: 16px; margin-bottom: 0;">
+            <div style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Workflow Status Info</div>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 13px;">
+              <div><strong>Current Status:</strong> <span id="details-status-badge" class="badge badge-pending">Pending</span></div>
+              <div><strong>Priority:</strong> <span id="details-priority-badge" class="badge badge-info">medium</span></div>
+              <div><strong>Grand Total Value:</strong> <strong id="details-total-price" style="color:var(--accent2);">₹0.00</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ordered Products List -->
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Products Ordered</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Product Name</th>
+                  <th>Qty</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody id="details-products-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Raw Materials Shortage Check Grid -->
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Raw Materials Verification Check (MTO BOM)</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Material Code</th>
+                  <th>Raw Material Name</th>
+                  <th>Required Qty</th>
+                  <th>Used Qty</th>
+                  <th>Stock Available</th>
+                  <th>Stock Shortage</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="details-materials-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+
+
+        <!-- History Timeline audit log -->
+        <div class="card" style="padding: 16px; margin-bottom: 0;">
+          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Order Workflow Change Timeline History Log</div>
+          <div class="timeline" id="details-timeline-container"></div>
+        </div>
+      </div>
+      <div class="modal-footer" id="details-action-buttons">
+        <button class="btn btn-outline" onclick="closeModal('order-details-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Account Modal -->
+  <div class="modal-overlay" id="user-modal">
+    <div class="modal" style="max-width: 400px">
+      <div class="modal-header">
+        <div class="modal-title" id="user-modal-title">Create User Account</div>
+        <button class="modal-close" onclick="closeModal('user-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-user-id">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="u-name" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="u-email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="u-password" placeholder="Leave empty to keep unchanged">
+        </div>
+        <div class="form-group">
+          <label>Assigned System Role</label>
+          <select id="u-role">
+            <option value="admin">Admin</option>
+            <option value="sales">Sales</option>
+            <option value="inventory">Inventory</option>
+            <option value="manufacturing">Manufacturing</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('user-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveUser()">Save User Account</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toasts"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    // Configuration
+    const API = '/api';
+
+    // State Variables
+    let state = {
+      customers: [],
+      products: [],
+      materials: [],
+      revenueChart: null
+    };
+
+    // Auth Sessions
+    const TOKEN = localStorage.getItem('erp_token');
+    const CURRENT_USER = JSON.parse(localStorage.getItem('erp_user') || 'null');
+
+    // Token Validator
+    function isValidJWT(token) {
+      if (!token) return false;
+      const parts = token.split('.');
+      return parts.length === 3;
+    }
+
+    if (!TOKEN || !CURRENT_USER || !isValidJWT(TOKEN)) {
+      localStorage.removeItem('erp_token');
+      localStorage.removeItem('erp_user');
+      window.location.href = '/login';
+    }
+
+    // Handles logout redirects on 401s
+    function handleUnauthorized() {
+      localStorage.removeItem('erp_token');
+      localStorage.removeItem('erp_user');
+      window.location.href = '/login';
+    }
+
+    // API fetch wrapper with token header
+    async function apiFetch(path, opts = {}) {
+      try {
+        const res = await fetch(API + path, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + TOKEN
+          },
+          ...opts
+        });
+        if (res.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({ detail: 'Request execution failed' }));
+          throw new Error(error.detail || 'Request failed');
+        }
+        return await res.json();
+      } catch (e) {
+        toast(e.message, 'error');
+        throw e;
+      }
+    }
+
+    // Custom alerts toasts handler
+    function toast(msg, type = 'success') {
+      const container = document.getElementById('toasts');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.animation = 'fadeOut .3s ease forwards';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    // HTML escape utility helper
+    function escapeHtml(unsafe) {
+      if (typeof unsafe !== 'string') return '';
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function toFloat(val) {
+      const parsed = parseFloat(val);
+      return isNaN(parsed) ? 0.00 : parsed;
+    }
+
+    // Navigate handler with screen authorization filters
+    function navigate(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      const elPage = document.getElementById(`page-${page}`);
+      if (elPage) elPage.classList.add('active');
+
+      const navItem = document.getElementById(`nav-${page}`);
+      if (navItem) navItem.classList.add('active');
+
+      const titles = {
+        dashboard: 'Dashboard Overview',
+        orders: 'Customer Order Book',
+        customers: 'Client Directory',
+        products: 'Product Catalog',
+        materials: 'Material Master',
+        inventory: 'Inventory Checks',
+        manufacturing: 'Manufacturing Workbench',
+        reports: 'Analytical Reports',
+        users: 'User Privileges'
+      };
+      
+      document.getElementById('page-title').textContent = titles[page] || page;
+
+      // Handle top actions buttons
+      const actions = {};
+      if (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'sales') {
+        actions.orders = '<button class="btn btn-primary" onclick="openOrderModal()">+ New Order</button>';
+        actions.customers = '<button class="btn btn-primary" onclick="openAddCustomerModal()">+ Add Customer</button>';
+      }
+      if (CURRENT_USER.role === 'admin') {
+        actions.products = '<button class="btn btn-primary" onclick="openAddProductModal()">+ Add Product</button>';
+        actions.materials = '<button class="btn btn-primary" onclick="openAddMaterialModal()">+ Add Raw Material</button>';
+      }
+      document.getElementById('topbar-action').innerHTML = actions[page] || '';
+
+      // Trigger loads
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'orders') loadOrders();
+      if (page === 'customers') loadCustomers();
+      if (page === 'products') loadProducts();
+      if (page === 'materials') loadMaterials();
+      if (page === 'inventory') loadInventory();
+      if (page === 'manufacturing') loadManufacturing();
+      if (page === 'reports') loadReports();
+      if (page === 'users') loadUsers();
+    }
+
+    // Modal view helpers
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('open');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); });
+    });
+
+    // ==================== DASHBOARD STATS ====================
+    async function loadDashboard() {
+      try {
+        const stats = await apiFetch('/dashboard/stats');
+        const monthly = await apiFetch('/dashboard/monthly-revenue');
+        const recent = await apiFetch('/dashboard/recent-orders');
+
+        document.getElementById('stat-orders').textContent = stats.total_orders;
+        document.getElementById('stat-revenue').textContent = `₹${stats.total_revenue.toLocaleString('en-IN')}`;
+        document.getElementById('stat-customers').textContent = stats.total_customers;
+        document.getElementById('stat-lowstock').textContent = stats.low_stock_alerts;
+
+        // Breakdown stats (new 3-dept workflow)
+        document.getElementById('stat-p-pending').textContent = recent.filter(o => o.status === 'pending').length;
+        document.getElementById('stat-p-confirmed').textContent = recent.filter(o => o.status === 'order_confirmed').length;
+        document.getElementById('stat-p-payment').textContent = recent.filter(o => o.status === 'payment_received').length;
+        document.getElementById('stat-p-ready').textContent = recent.filter(o => o.status === 'ready_to_process').length;
+        document.getElementById('stat-p-processing').textContent = recent.filter(o => o.status === 'start_processing').length;
+        document.getElementById('stat-p-dispatch').textContent = recent.filter(o => o.status === 'ready_to_dispatch').length;
+        document.getElementById('stat-p-dispatched').textContent = recent.filter(o => o.status === 'dispatched').length;
+
+        // Recent orders list
+        const recentBody = document.getElementById('recent-orders-body');
+        if (recent.length === 0) {
+          recentBody.innerHTML = '<tr><td colspan="5" class="empty-state">No recent orders.</td></tr>';
+        } else {
+          recentBody.innerHTML = recent.map(o => `
+            <tr>
+              <td><a href="#" onclick="viewOrderDetails(${o.id}); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
+              <td>${escapeHtml(o.customer?.name || 'Walk-in Client')}</td>
+              <td>${o.delivery_date || 'N/A'}</td>
+              <td>₹${o.total.toFixed(2)}</td>
+              <td><span class="badge badge-${o.status}">${o.status.replace('_', ' ')}</span></td>
+            </tr>
+          `).join('');
+        }
+
+        // Render monthly chart
+        renderRevenueChart(monthly);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderRevenueChart(chartData) {
+      const ctx = document.getElementById('revenue-chart').getContext('2d');
+      if (state.revenueChart) {
+        state.revenueChart.destroy();
+      }
+      
+      const labels = Object.keys(chartData);
+      const values = Object.values(chartData).map(m => m.revenue);
+
+      state.revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Monthly Revenue (Rs)',
+            data: values,
+            backgroundColor: '#6c63ff',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ==================== CUSTOMERS CATALOG ====================
+    async function loadCustomers() {
+      try {
+        const list = await apiFetch('/customers');
+        state.customers = list;
+        const tbody = document.getElementById('customers-body');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No customers recorded.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(c => `
+          <tr>
+            <td><strong>${escapeHtml(c.name)}</strong></td>
+            <td>${escapeHtml(c.email)}</td>
+            <td>${escapeHtml(c.phone || '-')}</td>
+            <td>${escapeHtml(c.city || '-')}</td>
+            <td><code style="color:var(--accent2); font-weight:bold;">${escapeHtml(c.gst_number || '-')}</code></td>
+            <td>
+              ${(CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'sales') ? `
+                <button class="btn btn-outline btn-sm" onclick="openEditCustomerModal(${c.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>
+              ` : '-'}
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function openAddCustomerModal() {
+      document.getElementById('customer-id').value = '';
+      document.getElementById('customer-name').value = '';
+      document.getElementById('customer-email').value = '';
+      document.getElementById('customer-phone').value = '';
+      document.getElementById('customer-city').value = '';
+      document.getElementById('customer-gst').value = '';
+      document.getElementById('customer-address').value = '';
+      document.getElementById('customer-modal-title').textContent = 'Add Client Account';
+      openModal('customer-modal');
+    }
+
+    function openEditCustomerModal(id) {
+      const c = state.customers.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('customer-id').value = c.id;
+      document.getElementById('customer-name').value = c.name;
+      document.getElementById('customer-email').value = c.email;
+      document.getElementById('customer-phone').value = c.phone || '';
+      document.getElementById('customer-city').value = c.city || '';
+      document.getElementById('customer-gst').value = c.gst_number || '';
+      document.getElementById('customer-address').value = c.address || '';
+      document.getElementById('customer-modal-title').textContent = 'Edit Client Account';
+      openModal('customer-modal');
+    }
+
+    async function submitCustomer() {
+      const id = document.getElementById('customer-id').value;
+      const payload = {
+        name: document.getElementById('customer-name').value,
+        email: document.getElementById('customer-email').value,
+        phone: document.getElementById('customer-phone').value,
+        city: document.getElementById('customer-city').value,
+        gst_number: document.getElementById('customer-gst').value.toUpperCase(),
+        address: document.getElementById('customer-address').value
+      };
+      
+      if (!payload.name || !payload.email) {
+        toast('Name and email are mandatory fields', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await apiFetch(`/customers/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          toast('Customer details updated');
+        } else {
+          await apiFetch('/customers', { method: 'POST', body: JSON.stringify(payload) });
+          toast('Customer added successfully');
+        }
+        closeModal('customer-modal');
+        loadCustomers();
+      } catch (e) {}
+    }
+
+    async function deleteCustomer(id) {
+      if (!confirm('Are you sure you want to delete this customer?')) return;
+      try {
+        await apiFetch(`/customers/${id}`, { method: 'DELETE' });
+        toast('Customer account deactivated');
+        loadCustomers();
+      } catch (e) {}
+    }
+
+    // ==================== PRODUCTS CATALOG ====================
+    async function loadProducts() {
+      try {
+        const list = await apiFetch('/products');
+        state.products = list;
+        const tbody = document.getElementById('products-body');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No products registered yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(p => `
+          <tr>
+            <td><code>${escapeHtml(p.sku)}</code></td>
+            <td><strong>${escapeHtml(p.name)}</strong></td>
+            <td>${escapeHtml(p.unit)}</td>
+            <td>₹${p.price.toFixed(2)}</td>
+            <td><span class="badge ${p.product_type === 'FINISHED_GOOD' ? 'badge-ok' : 'badge-warning'}">${p.product_type}</span></td>
+            <td>
+              ${CURRENT_USER.role === 'admin' ? `
+                <button class="btn btn-outline btn-sm" onclick="openEditProductModal(${p.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">Delete</button>
+              ` : '-'}
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    let productBOM = [];
+
+    async function ensureMaterialsLoaded() {
+      if (!state.materials || state.materials.length === 0) {
+        try {
+          state.materials = await apiFetch('/materials');
+        } catch (e) {
+          state.materials = [];
+        }
+      }
+    }
+
+    async function addProductBOMRow() {
+      await ensureMaterialsLoaded();
+      if (state.materials.length === 0) {
+        toast('No raw materials found. Please define raw materials first.', 'error');
+        return;
+      }
+      productBOM.push({
+        material_id: state.materials[0].id,
+        unit: state.materials[0].unit || 'pcs',
+        quantity_per_unit: 1.0,
+        price: state.materials[0].rate || 0.00
+      });
+      renderProductBOMRows();
+    }
+
+    function removeProductBOMRow(index) {
+      productBOM.splice(index, 1);
+      renderProductBOMRows();
+    }
+
+    function onBOMMaterialSelectChange(index, matId) {
+      const mat = state.materials.find(m => m.id === parseInt(matId));
+      if (mat) {
+        productBOM[index].material_id = mat.id;
+        productBOM[index].unit = mat.unit || 'pcs';
+        productBOM[index].price = mat.rate || 0.00;
+      }
+      renderProductBOMRows();
+    }
+
+    function onBOMQtyChange(index, qty) {
+      productBOM[index].quantity_per_unit = parseFloat(qty) || 0;
+    }
+
+    function onBOMPriceChange(index, price) {
+      productBOM[index].price = parseFloat(price) || 0;
+    }
+
+    function renderProductBOMRows() {
+      const container = document.getElementById('product-bom-rows');
+      if (!container) return;
+      if (productBOM.length === 0) {
+        container.innerHTML = '<tr><td colspan="5" class="empty-state">No materials added to this BOM recipe.</td></tr>';
+        return;
+      }
+      container.innerHTML = productBOM.map((c, idx) => `
+        <tr>
+          <td>
+            <select onchange="onBOMMaterialSelectChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+              ${state.materials.map(m => `<option value="${m.id}" ${m.id === c.material_id ? 'selected' : ''}>${escapeHtml(m.name)} (${escapeHtml(m.code)})</option>`).join('')}
+            </select>
+          </td>
+          <td><span style="padding-left: 10px;">${escapeHtml(c.unit)}</span></td>
+          <td>
+            <input type="number" value="${c.quantity_per_unit}" min="0.0001" step="any" oninput="onBOMQtyChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+          </td>
+          <td>
+            <input type="number" value="${c.price}" min="0" step="any" oninput="onBOMPriceChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+          </td>
+          <td>
+            <button class="btn btn-danger btn-sm" type="button" onclick="removeProductBOMRow(${idx})" style="padding:6px 10px;">✕</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function openAddProductModal() {
+      await ensureMaterialsLoaded();
+      document.getElementById('product-id').value = '';
+      document.getElementById('product-name').value = '';
+      document.getElementById('product-sku').value = '';
+      document.getElementById('product-price').value = '';
+      document.getElementById('product-unit').value = 'pcs';
+      document.getElementById('product-description').value = '';
+      document.getElementById('product-modal-title').textContent = 'Add Catalog Product';
+      productBOM = [];
+      renderProductBOMRows();
+      openModal('product-modal');
+    }
+
+    async function openEditProductModal(id) {
+      await ensureMaterialsLoaded();
+      const p = state.products.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('product-id').value = p.id;
+      document.getElementById('product-name').value = p.name;
+      document.getElementById('product-sku').value = p.sku;
+      document.getElementById('product-price').value = p.price;
+      document.getElementById('product-unit').value = p.unit || 'pcs';
+      document.getElementById('product-description').value = p.description || '';
+      document.getElementById('product-modal-title').textContent = 'Edit Catalog Product';
+      productBOM = [];
+      if (p.components && p.components.length > 0) {
+        p.components.forEach(c => {
+          productBOM.push({
+            material_id: c.material_id,
+            unit: c.unit || 'pcs',
+            quantity_per_unit: c.quantity_per_unit || 1.0,
+            price: c.price || 0.00
+          });
+        });
+      }
+      renderProductBOMRows();
+      openModal('product-modal');
+    }
+
+    async function submitProduct() {
+      const id = document.getElementById('product-id').value;
+      const payload = {
+        name: document.getElementById('product-name').value,
+        sku: document.getElementById('product-sku').value,
+        price: toFloat(document.getElementById('product-price').value),
+        unit: document.getElementById('product-unit').value,
+        description: document.getElementById('product-description').value,
+        product_type: 'FINISHED_GOOD',
+        cost_price: 0,
+        stock_quantity: 0,
+        min_stock_level: 10,
+        components: productBOM.map(c => ({
+          material_id: parseInt(c.material_id),
+          unit: c.unit,
+          quantity_per_unit: parseFloat(c.quantity_per_unit),
+          price: parseFloat(c.price)
+        }))
+      };
+
+      if (!payload.name || !payload.sku) {
+        toast('Name and SKU are required', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await apiFetch(`/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          toast('Product updated successfully');
+        } else {
+          await apiFetch('/products', { method: 'POST', body: JSON.stringify(payload) });
+          toast('New product added to catalog');
+        }
+        closeModal('product-modal');
+        loadProducts();
+      } catch (e) {}
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      try {
+        await apiFetch(`/products/${id}`, { method: 'DELETE' });
+        toast('Product deleted');
+        loadProducts();
+      } catch (e) {}
+    }
+
+    // ==================== MATERIAL MASTER CATALOG ====================
+    async function loadMaterials() {
+      try {
+        const query = document.getElementById('material-search').value;
+        const list = await apiFetch('/materials');
+        state.materials = list;
+        
+        let filtered = list;
+        if (query) {
+          filtered = list.filter(m => 
+            m.name.toLowerCase().includes(query.toLowerCase()) || 
+            m.code.toLowerCase().includes(query.toLowerCase())
+          );
+        }
+
+        const tbody = document.getElementById('materials-body');
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No raw materials found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(m => `
+          <tr>
+            <td><code>${escapeHtml(m.code)}</code></td>
+            <td><strong>${escapeHtml(m.name)}</strong></td>
+            <td>${escapeHtml(m.unit)}</td>
+            <td>₹${m.rate.toFixed(2)}</td>
+            <td><strong>${m.stock_quantity.toFixed(2)}</strong></td>
+            <td>${m.min_stock_level.toFixed(2)}</td>
+            <td><span class="badge badge-${m.status === 'ok' ? 'ok' : 'warning'}">${m.status.toUpperCase()}</span></td>
+            <td>
+              ${CURRENT_USER.role === 'admin' ? `
+                <button class="btn btn-outline btn-sm" onclick="openEditMaterialModal(${m.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteMaterial(${m.id})">Delete</button>
+              ` : ''}
+              ${(CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'inventory') ? `
+                <button class="btn btn-outline btn-sm" onclick="openRestockModal(${m.id})" style="border-color:var(--accent2); color:var(--success);">📥 Restock</button>
+              ` : ''}
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function openAddMaterialModal() {
+      document.getElementById('mat-id').value = '';
+      document.getElementById('mat-name').value = '';
+      document.getElementById('mat-code').value = '';
+      document.getElementById('mat-unit').value = 'pcs';
+      document.getElementById('mat-rate').value = '';
+      document.getElementById('mat-stock').value = '';
+      document.getElementById('mat-min-level').value = '10';
+      document.getElementById('material-modal-title').textContent = 'Add Raw Material';
+      openModal('material-modal');
+    }
+
+    function openEditMaterialModal(id) {
+      const m = state.materials.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('mat-id').value = m.id;
+      document.getElementById('mat-name').value = m.name;
+      document.getElementById('mat-code').value = m.code;
+      document.getElementById('mat-unit').value = m.unit;
+      document.getElementById('mat-rate').value = m.rate;
+      document.getElementById('mat-stock').value = m.stock_quantity;
+      document.getElementById('mat-min-level').value = m.min_stock_level;
+      document.getElementById('material-modal-title').textContent = 'Edit Raw Material';
+      openModal('material-modal');
+    }
+
+    async function submitMaterialMaster() {
+      const id = document.getElementById('mat-id').value;
+      const payload = {
+        name: document.getElementById('mat-name').value,
+        code: document.getElementById('mat-code').value.trim(),
+        unit: document.getElementById('mat-unit').value,
+        rate: toFloat(document.getElementById('mat-rate').value),
+        stock_quantity: toFloat(document.getElementById('mat-stock').value),
+        min_stock_level: toFloat(document.getElementById('mat-min-level').value),
+        is_active: true
+      };
+
+      if (!payload.name || !payload.code) {
+        toast('Material Name and Code are mandatory', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await apiFetch(`/materials/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          toast('Material properties updated');
+        } else {
+          await apiFetch('/materials', { method: 'POST', body: JSON.stringify(payload) });
+          toast('New raw material added to master directory');
+        }
+        closeModal('material-modal');
+        loadMaterials();
+      } catch (e) {}
+    }
+
+    async function deleteMaterial(id) {
+      if (!confirm('Are you sure you want to delete this raw material from master?')) return;
+      try {
+        await apiFetch(`/materials/${id}`, { method: 'DELETE' });
+        toast('Material deactivated');
+        loadMaterials();
+      } catch (e) {}
+    }
+    async function openRestockModal(id) {
+      const m = state.materials.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('restock-mat-id').value = m.id;
+      document.getElementById('restock-mat-name').value = m.name;
+      document.getElementById('restock-qty').value = '';
+      document.getElementById('restock-remarks').value = '';
+      openModal('restock-modal');
+    }
+
+    async function submitRestock() {
+      const id = document.getElementById('restock-mat-id').value;
+      const payload = {
+        quantity: toFloat(document.getElementById('restock-qty').value),
+        remarks: document.getElementById('restock-remarks').value
+      };
+
+      if (payload.quantity <= 0) {
+        toast('Purchase quantity must be greater than 0', 'error');
+        return;
+      }
+
+      try {
+        await apiFetch(`/materials/${id}/purchase`, { method: 'POST', body: JSON.stringify(payload) });
+        toast('Restock stock quantity updated');
+        closeModal('restock-modal');
+        loadMaterials();
+      } catch (e) {}
+    }
+
+
+    // ==================== EXTENDED ORDER CREATION GRID SYSTEM ====================
+    let orderItems = [];
+
+    async function openOrderModal(orderId = null) {
+      try {
+        // Clear grids
+        orderItems = [];
+
+        // Load customers and products lists into memory
+        const custs = await apiFetch('/customers');
+        const prods = await apiFetch('/products');
+        const mats = await apiFetch('/materials');
+        
+        state.customers = custs;
+        state.products = prods.filter(p => p.product_type === 'FINISHED_GOOD');
+        state.materials = mats;
+
+        // Pop dropdown
+        const selectCust = document.getElementById('order-customer');
+        selectCust.innerHTML = custs.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+        document.getElementById('order-id').value = '';
+        document.getElementById('order-delivery').value = new Date().toISOString().split('T')[0];
+        document.getElementById('order-priority').value = 'medium';
+        document.getElementById('order-desc').value = '';
+        document.getElementById('order-modal-title').textContent = 'Create Customer Order';
+
+        document.getElementById('order-products-container').innerHTML = '';
+
+        if (orderId) {
+          // Edit flow (load existing)
+          const data = await apiFetch(`/orders/${orderId}`);
+          document.getElementById('order-id').value = data.id;
+          document.getElementById('order-customer').value = data.customer_id;
+          document.getElementById('order-delivery').value = data.delivery_date || '';
+          document.getElementById('order-priority').value = data.priority;
+          document.getElementById('order-desc').value = data.description || '';
+          document.getElementById('order-modal-title').textContent = 'Modify Order Details';
+
+          // Pop products
+          data.items.forEach(it => {
+            const itemMats = [];
+            if (it.order_materials) {
+              it.order_materials.forEach(om => {
+                itemMats.push({
+                  material_id: om.material_id,
+                  required_qty: om.required_qty,
+                  unit: om.unit,
+                  rate: om.rate,
+                  remarks: om.remarks || ''
+                });
+              });
+            }
+            orderItems.push({
+              product_id: it.product_id,
+              quantity: it.quantity,
+              unit: it.unit || 'pcs',
+              unit_price: it.unit_price,
+              description: it.description || '',
+              materials: itemMats
+            });
+          });
+        } else {
+          // Start with one clean empty row for each
+          addOrderProductRow();
+        }
+
+        renderOrderProductRows();
+        recalcOrderTotal();
+
+        openModal('order-modal');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // ── Products Subgrid (with nested Product-wise Raw Materials) ──
+    function addOrderProductRow() {
+      if (state.products.length === 0) {
+        toast('No finished goods products registered in catalog', 'error');
+        return;
+      }
+      const defaultProd = state.products[0];
+      const newProduct = {
+        product_id: defaultProd.id,
+        quantity: 1,
+        unit: defaultProd.unit || 'pcs',
+        unit_price: defaultProd.price || 0.00,
+        description: '',
+        materials: []
+      };
+      
+      // Auto-populate default materials BOM if product has components
+      if (defaultProd.components && defaultProd.components.length > 0) {
+        newProduct.materials = defaultProd.components.map(c => ({
+          material_id: c.material_id,
+          required_qty: c.quantity_per_unit * 1.0,
+          unit: c.unit || 'pcs',
+          rate: c.price || 0.00,
+          remarks: ''
+        }));
+      }
+      
+      orderItems.push(newProduct);
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function removeOrderProductRow(index) {
+      orderItems.splice(index, 1);
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function onProductSelectChange(index, productId) {
+      const prod = state.products.find(p => p.id === parseInt(productId));
+      if (prod) {
+        orderItems[index].product_id = prod.id;
+        orderItems[index].unit = prod.unit || 'pcs';
+        orderItems[index].unit_price = prod.price || 0.00;
+        orderItems[index].description = '';
+        orderItems[index].materials = [];
+        if (prod.components && prod.components.length > 0) {
+          orderItems[index].materials = prod.components.map(c => ({
+            material_id: c.material_id,
+            required_qty: c.quantity_per_unit * (orderItems[index].quantity || 1),
+            unit: c.unit || 'pcs',
+            rate: c.price || 0.00,
+            remarks: ''
+          }));
+        }
+      }
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function onProductDescriptionChange(index, desc) {
+      orderItems[index].description = desc;
+    }
+
+    function onProductUnitChange(index, unit) {
+      orderItems[index].unit = unit;
+      renderOrderProductRows();
+    }
+
+    function onProductQtyChange(index, qty) {
+      const newQty = parseInt(qty) || 1;
+      const oldQty = orderItems[index].quantity || 1;
+      orderItems[index].quantity = newQty;
+      // Proportionally scale raw materials when product quantity changes!
+      const scale = newQty / oldQty;
+      if (orderItems[index].materials) {
+        orderItems[index].materials.forEach(m => {
+          m.required_qty = parseFloat((m.required_qty * scale).toFixed(4));
+        });
+      }
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function onProductPriceChange(index, price) {
+      orderItems[index].unit_price = parseFloat(price) || 0.00;
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function addNestedMaterialRow(productIdx) {
+      if (state.materials.length === 0) {
+        toast('No raw materials seeded in master database', 'error');
+        return;
+      }
+      const defaultMat = state.materials[0];
+      orderItems[productIdx].materials.push({
+        material_id: defaultMat.id,
+        required_qty: 1.0,
+        unit: defaultMat.unit || 'pcs',
+        rate: defaultMat.rate || 0.00,
+        remarks: ''
+      });
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function removeNestedMaterialRow(productIdx, matIdx) {
+      orderItems[productIdx].materials.splice(matIdx, 1);
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function onNestedMaterialChange(productIdx, matIdx, field, value) {
+      const matObj = orderItems[productIdx].materials[matIdx];
+      if (field === 'material_id') {
+        const selectedMat = state.materials.find(m => m.id === parseInt(value));
+        if (selectedMat) {
+          matObj.material_id = selectedMat.id;
+          matObj.unit = selectedMat.unit || 'pcs';
+          matObj.rate = selectedMat.rate || 0.00;
+        }
+      } else if (field === 'required_qty') {
+        matObj.required_qty = parseFloat(value) || 0;
+      } else if (field === 'rate') {
+        matObj.rate = parseFloat(value) || 0;
+      } else if (field === 'remarks') {
+        matObj.remarks = value;
+      }
+      renderOrderProductRows();
+      recalcOrderTotal();
+    }
+
+    function renderOrderProductRows() {
+      const container = document.getElementById('order-products-container');
+      if (!container) return;
+      if (orderItems.length === 0) {
+        container.innerHTML = '<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:20px;">No product items added. Click "+ Add Product".</div>';
+        return;
+      }
+      container.innerHTML = orderItems.map((item, idx) => {
+        const prod = state.products.find(p => p.id === item.product_id);
+        const prodName = prod ? prod.name : 'Unknown Product';
+        
+        return `
+          <div class="product-item-block" style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; background: var(--surface); margin-bottom: 15px;">
+            <!-- Product Row -->
+            <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr auto; gap:10px; align-items:center;">
+              <div>
+                <select onchange="onProductSelectChange(${idx}, this.value)" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+                  ${state.products.map(p => `<option value="${p.id}" ${p.id === item.product_id ? 'selected' : ''}>${escapeHtml(p.name)} [${escapeHtml(p.sku)}]</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <input type="text" value="${escapeHtml(item.unit || 'pcs')}" placeholder="unit" onchange="onProductUnitChange(${idx}, this.value)" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+              </div>
+              <div>
+                <input type="number" value="${item.quantity}" min="1" step="1" onchange="onProductQtyChange(${idx}, this.value)" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+              </div>
+              <div>
+                <input type="number" value="${item.unit_price}" min="0" step="any" onchange="onProductPriceChange(${idx}, this.value)" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+              </div>
+              <div>
+                <span style="font-weight:600; color:var(--accent2); padding-left:5px; font-size:13px;">₹${(item.quantity * item.unit_price).toFixed(2)}</span>
+              </div>
+              <div>
+                <button class="btn btn-danger btn-sm" type="button" onclick="removeOrderProductRow(${idx})" style="padding:8px;">✕</button>
+              </div>
+            </div>
+
+            <!-- Product Description Row -->
+            <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr; gap: 5px;">
+              <input type="text" value="${escapeHtml(item.description || '')}" placeholder="Product notes, dimensions, or custom specifications..." onchange="onProductDescriptionChange(${idx}, this.value)" style="padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:12px;">
+            </div>
+
+            <!-- Product-wise Raw Materials BOM specification subgrid -->
+            <div style="margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-weight: 600; font-size:12px; color:var(--text-muted);">Raw Materials (BOM Specs for ${escapeHtml(prodName)})</div>
+                <button class="btn btn-outline btn-sm" type="button" style="font-size:10px; padding:3px 8px;" onclick="addNestedMaterialRow(${idx})">+ Add Material</button>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr 2fr auto; gap:8px; margin-bottom: 4px; font-weight: bold; font-size: 10px; color: var(--text-sub); padding: 0 5px;">
+                <div>Raw Material</div>
+                <div>Req Qty</div>
+                <div>Unit</div>
+                <div>Rate (₹)</div>
+                <div>Amount (₹)</div>
+                <div>Remarks</div>
+                <div style="width: 20px;"></div>
+              </div>
+
+              <div class="nested-materials-list">
+                ${(item.materials || []).map((mat, matIdx) => `
+                  <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr 2fr auto; gap:8px; align-items:center; margin-bottom:6px; padding:0 5px;">
+                    <div>
+                      <select onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'material_id', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                        ${state.materials.map(m => `<option value="${m.id}" ${m.id === mat.material_id ? 'selected' : ''}>${escapeHtml(m.name)}</option>`).join('')}
+                      </select>
+                    </div>
+                    <div>
+                      <input type="number" value="${mat.required_qty}" min="0.0001" step="any" onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'required_qty', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                    </div>
+                    <div>
+                      <span style="font-size:11px; padding-left:4px;">${escapeHtml(mat.unit)}</span>
+                    </div>
+                    <div>
+                      <input type="number" value="${mat.rate}" min="0" step="any" onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'rate', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                    </div>
+                    <div>
+                      <span style="font-size:11px; font-weight:600; color:var(--accent4); padding-left:4px;">₹${(mat.required_qty * mat.rate).toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <input type="text" value="${escapeHtml(mat.remarks || '')}" placeholder="Execution details..." onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'remarks', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                    </div>
+                    <div>
+                      <button class="btn btn-danger btn-sm" type="button" onclick="removeNestedMaterialRow(${idx}, ${matIdx})" style="padding:4px 8px; font-size:10px;">✕</button>
+                    </div>
+                  </div>
+                `).join('')}
+                ${(item.materials || []).length === 0 ? `<div style="font-size:11px; color:var(--text-sub); text-align:center; padding:10px;">No raw materials spec defined for this product line item.</div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Total Calculator ──
+    function recalcOrderTotal() {
+      const itemsTotal = orderItems.reduce((acc, it) => acc + (it.quantity * it.unit_price), 0);
+      let matsTotal = 0.0;
+      orderItems.forEach(it => {
+        if (it.materials) {
+          matsTotal += it.materials.reduce((sum, om) => sum + (om.required_qty * om.rate), 0);
+        }
+      });
+      const grand = itemsTotal + matsTotal;
+      document.getElementById('order-total-preview').textContent = `₹${grand.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    }
+
+    async function submitOrder() {
+      const id = document.getElementById('order-id').value;
+      
+      const payload = {
+        customer_id: parseInt(document.getElementById('order-customer').value),
+        delivery_date: document.getElementById('order-delivery').value || null,
+        priority: document.getElementById('order-priority').value,
+        description: document.getElementById('order-desc').value,
+        items: orderItems.map(it => ({
+          product_id: parseInt(it.product_id) || 0,
+          quantity: parseInt(it.quantity) || 1,
+          unit: it.unit || 'pcs',
+          unit_price: parseFloat(it.unit_price) || 0.00,
+          description: it.description || '',
+          materials: (it.materials || []).map(m => ({
+            material_id: parseInt(m.material_id) || 0,
+            required_qty: parseFloat(m.required_qty) || 0.00,
+            unit: m.unit || 'pcs',
+            rate: parseFloat(m.rate) || 0.00,
+            remarks: m.remarks || ''
+          }))
+        })),
+        materials: [],
+        extra_items: []
+      };
+
+      if (!payload.customer_id || payload.items.length === 0) {
+        toast('Select a customer and add at least one finished goods item', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await apiFetch(`/orders/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          toast('Customer order specifications modified successfully');
+        } else {
+          await apiFetch('/orders', { method: 'POST', body: JSON.stringify(payload) });
+          toast('New customer order booked! Status: Pending');
+        }
+        closeModal('order-modal');
+        loadOrders();
+      } catch (e) {}
+    }
+
+
+    // ==================== ORDER TAB SWITCHING ====================
+    let activeOrderTab = 'active';
+
+    function switchOrderTab(tab) {
+      activeOrderTab = tab;
+      document.getElementById('tab-active-orders').classList.toggle('active', tab === 'active');
+      document.getElementById('tab-completed-orders').classList.toggle('active', tab === 'completed');
+      document.getElementById('panel-active-orders').style.display = tab === 'active' ? '' : 'none';
+      document.getElementById('panel-completed-orders').style.display = tab === 'completed' ? '' : 'none';
+      if (tab === 'active') loadOrders();
+      else loadCompletedOrders();
+    }
+
+    // ==================== STATUS LABEL HELPER ====================
+    function statusLabel(s) {
+      const map = {
+        pending: 'Pending', order_confirmed: 'Order Confirmed', payment_received: 'Payment Received',
+        ready_to_process: 'Ready to Process', start_processing: 'Processing',
+        ready_to_dispatch: 'Ready to Dispatch', dispatched: 'Dispatched',
+        paused: 'Paused', other: 'Other', cancelled: 'Cancelled',
+        completed: 'Completed', need_purchase: 'Need Purchase',
+        inventory_approved: 'Inv. Approved', manufacturing: 'Manufacturing', manufactured: 'Manufactured'
+      };
+      return map[s] || s.replace(/_/g, ' ');
+    }
+
+    // All actions available for Sales/Admin (any transition allowed, filtered to exclude current)
+    function getNextActions(status) {
+      const all = [
+        {s:'pending',           label:'🔄 Reset to Pending'},
+        {s:'order_confirmed',   label:'✅ Confirm Order'},
+        {s:'payment_received',  label:'💰 Payment Received'},
+        {s:'ready_to_process',  label:'🚀 Ready to Process'},
+        {s:'start_processing',  label:'🏭 Start Processing'},
+        {s:'ready_to_dispatch', label:'📦 Ready to Dispatch'},
+        {s:'dispatched',        label:'🚚 Dispatched'},
+        {s:'paused',            label:'⏸ Pause Order'},
+        {s:'other',             label:'📋 Other Action'},
+        {s:'cancelled',         label:'❌ Cancel Order'}
+      ];
+      return all.filter(a => a.s !== status);
+    }
+
+    // All actions available for Manufacturing role
+    function getMfgActions(status) {
+      const all = [
+        {s:'start_processing',  label:'🏭 Start Processing'},
+        {s:'ready_to_dispatch', label:'📦 Ready to Dispatch'},
+        {s:'dispatched',        label:'🚚 Dispatched'},
+        {s:'other',             label:'📋 Other Action'},
+        {s:'cancelled',         label:'❌ Cancel Order'}
+      ];
+      return all.filter(a => a.s !== status);
+    }
+
+    // ==================== LIST ORDERS (Active Tab) ====================
+    async function loadOrders() {
+      try {
+        const filterStatus = document.getElementById('order-status-filter').value;
+        let path = '/orders?limit=200';
+        if (filterStatus) {
+          path += `&status=${filterStatus}`;
+        }
+        const list = await apiFetch(path);
+        const tbody = document.getElementById('orders-body');
+        
+        // Filter out dispatched/completed from active view (unless specifically filtered)
+        const activeList = filterStatus ? list : list.filter(o => o.status !== 'dispatched' && o.status !== 'completed');
+
+        if (activeList.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No active orders found.</td></tr>';
+          return;
+        }
+
+        const role = CURRENT_USER.role;
+        tbody.innerHTML = activeList.map(o => {
+          const actions = (role === 'admin' || role === 'sales') ? getNextActions(o.status) : [];
+          
+          let actionDropdown = '';
+          if (actions.length > 0) {
+            actionDropdown = `
+              <select class="filter-select" style="font-size:11px; padding:4px 8px; margin: 0 4px; width:150px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:6px; cursor:pointer;" onchange="if(this.value) { changeOrderStatus(${o.id}, this.value); this.value=''; }">
+                <option value="">Update Status...</option>
+                ${actions.map(a => `<option value="${a.s}">${a.label}</option>`).join('')}
+              </select>
+            `;
+          }
+
+          return `
+            <tr>
+              <td><a href="#" onclick="viewOrderDetails(${o.id}); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
+              <td>${escapeHtml(o.customer?.name || 'Walk-in')}</td>
+              <td>${o.order_date ? new Date(o.order_date).toLocaleDateString() : '-'}</td>
+              <td>${o.delivery_date || 'N/A'}</td>
+              <td>₹${o.total.toFixed(2)}</td>
+              <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+              <td style="min-width:280px;">
+                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails(${o.id})" style="font-size:11px; padding:4px 8px;">🔍 Details</button>
+                ${(role === 'admin' || role === 'sales') ? `<button class="btn btn-outline btn-sm" onclick="openOrderModal(${o.id})" style="font-size:11px; padding:4px 8px;">📝 Edit</button>` : ''}
+                ${actionDropdown}
+                ${role === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})" style="font-size:11px; padding:4px 8px;">🗑</button>` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    // ==================== COMPLETED ORDERS TAB ====================
+    async function loadCompletedOrders() {
+      try {
+        const dispatched = await apiFetch('/orders?status=dispatched&limit=200');
+        const completed = await apiFetch('/orders?status=completed&limit=200');
+        const list = [...dispatched, ...completed];
+        const tbody = document.getElementById('completed-orders-body');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No completed/dispatched orders yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(o => `
+          <tr>
+            <td><a href="#" onclick="viewOrderDetails(${o.id}); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
+            <td>${escapeHtml(o.customer?.name || 'Walk-in')}</td>
+            <td>${o.order_date ? new Date(o.order_date).toLocaleDateString() : '-'}</td>
+            <td>${o.delivery_date || 'N/A'}</td>
+            <td>₹${o.total.toFixed(2)}</td>
+            <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="viewOrderDetails(${o.id})" style="font-size:11px; padding:4px 8px;">🔍 Details</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function deleteOrder(id) {
+      if (!confirm('Are you sure you want to delete this order?')) return;
+      try {
+        await apiFetch(`/orders/${id}`, { method: 'DELETE' });
+        toast('Order record removed');
+        loadOrders();
+      } catch (e) {}
+    }
+
+    // ==================== UNIVERSAL STATUS CHANGE ====================
+    async function changeOrderStatus(orderId, newStatus) {
+      let remarks = '';
+      if (newStatus === 'cancelled') {
+        remarks = prompt('Reason for cancellation:', 'Order cancelled.');
+        if (remarks === null) return;
+      } else if (newStatus === 'paused') {
+        remarks = prompt('Reason for pausing:', 'Temporarily paused.');
+        if (remarks === null) return;
+      } else if (newStatus === 'other') {
+        remarks = prompt('Enter remarks:', '');
+        if (remarks === null) return;
+      }
+
+      try {
+        const result = await apiFetch(`/orders/${orderId}/status`, {
+          method: 'POST',
+          body: JSON.stringify({ status: newStatus, remarks: remarks })
+        });
+
+        // Show inventory warning if ready_to_process has shortages
+        if (newStatus === 'ready_to_process' && result.inventory_check && !result.inventory_check.can_process) {
+          const shortItems = result.inventory_check.items.filter(i => i.status === 'shortage');
+          let msg = '⚠️ MATERIAL SHORTAGE WARNING:\n\n';
+          shortItems.forEach(i => {
+            msg += `• ${i.material_name}: Need ${i.required_qty}, Available ${i.available_qty} (Short: ${i.shortage_qty})\n`;
+          });
+          msg += '\nOrder status has been set to Ready to Process. Please ensure materials are restocked before processing.';
+          alert(msg);
+        }
+
+        toast(`Status updated: ${statusLabel(newStatus)}`);
+        closeModal('order-details-modal');
+        loadOrders();
+        loadManufacturing();
+      } catch (e) {}
+    }
+
+
+    // ==================== ORDER DETAILS & TIMELINE ====================
+    async function viewOrderDetails(id) {
+      try {
+        const o = await apiFetch(`/orders/${id}`);
+        
+        document.getElementById('details-order-id').value = o.id;
+        document.getElementById('order-details-title').textContent = `Order Details: ${o.order_number}`;
+        document.getElementById('details-customer-name').textContent = o.customer ? o.customer.name : 'Walk-in Client';
+        document.getElementById('details-delivery-date').textContent = o.delivery_date || 'Not Scheduled';
+        document.getElementById('details-description-text').textContent = o.description || 'No execution remarks.';
+        
+        const statusBadge = document.getElementById('details-status-badge');
+        statusBadge.className = `badge badge-${o.status}`;
+        statusBadge.textContent = statusLabel(o.status);
+
+        const priorityBadge = document.getElementById('details-priority-badge');
+        priorityBadge.className = `badge badge-${o.priority === 'high' ? 'danger' : 'info'}`;
+        priorityBadge.textContent = o.priority;
+
+        document.getElementById('details-total-price').textContent = `₹${o.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+        // Products sub table
+        const tbodyProds = document.getElementById('details-products-rows');
+        tbodyProds.innerHTML = o.items.map(it => `
+          <tr>
+            <td><code>${escapeHtml(it.product?.sku || '-')}</code></td>
+            <td>
+              <strong>${escapeHtml(it.product?.name || '-')}</strong>
+              ${it.description ? `<br><small style="color:var(--text-muted); font-style:italic;">Note: ${escapeHtml(it.description)}</small>` : ''}
+            </td>
+            <td>${it.quantity} ${escapeHtml(it.unit || 'pcs')}</td>
+            <td>₹${it.unit_price.toFixed(2)}</td>
+            <td>₹${it.total_price.toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+        // Raw materials check shortages
+        let check = { items: [], can_approve: true };
+        try { check = await apiFetch(`/orders/${id}/inventory-check`); } catch(e) {}
+        const tbodyMats = document.getElementById('details-materials-rows');
+        if (o.order_materials.length === 0) {
+          tbodyMats.innerHTML = '<tr><td colspan="9" class="empty-state">No materials specified.</td></tr>';
+        } else {
+          tbodyMats.innerHTML = o.order_materials.map(om => {
+            const chk = check.items.find(x => x.material_id === om.material_id) || {};
+            const shortage = chk.shortage_qty || 0.00;
+            const available = chk.available_qty || 0.00;
+            
+            return `
+              <tr>
+                <td><code>${escapeHtml(om.material_code)}</code></td>
+                <td><strong>${escapeHtml(om.material_name)}</strong></td>
+                <td>${om.required_qty.toFixed(2)} ${escapeHtml(om.unit)}</td>
+                <td>${om.used_qty.toFixed(2)} ${escapeHtml(om.unit)}</td>
+                <td><strong>${available.toFixed(2)}</strong></td>
+                <td style="color:${shortage > 0 ? 'var(--danger)' : 'inherit'}; font-weight:${shortage > 0 ? 'bold' : 'normal'}">${shortage.toFixed(2)}</td>
+                <td>₹${om.rate.toFixed(2)}</td>
+                <td>₹${om.amount.toFixed(2)}</td>
+                <td><span class="badge ${shortage > 0 ? 'badge-danger' : 'badge-ok'}">${shortage > 0 ? 'Shortage' : 'In Stock'}</span></td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+        // Extra fees
+        const tbodyExtras = document.getElementById('details-extras-rows');
+        if (o.extra_items.length === 0) {
+          tbodyExtras.innerHTML = '<tr><td colspan="4" class="empty-state">No extra expenses billed.</td></tr>';
+        } else {
+          tbodyExtras.innerHTML = o.extra_items.map(ei => `
+            <tr>
+              <td><strong>${escapeHtml(ei.item_name)}</strong></td>
+              <td>${ei.quantity}</td>
+              <td>₹${ei.price.toFixed(2)}</td>
+              <td>₹${ei.amount.toFixed(2)}</td>
+            </tr>
+          `).join('');
+        }
+
+        // Timeline History Logs
+        const timelineContainer = document.getElementById('details-timeline-container');
+        if (o.timeline.length === 0) {
+          timelineContainer.innerHTML = '<div style="color:var(--text-muted); font-size:13px;">No history recorded yet.</div>';
+        } else {
+          timelineContainer.innerHTML = o.timeline.map(t => {
+            let classType = 'info';
+            if (t.action.includes('Confirmed') || t.action.includes('Payment') || t.action.includes('Dispatched')) classType = 'success';
+            if (t.action.includes('Cancel')) classType = 'danger';
+            if (t.action.includes('Processing') || t.action.includes('Start')) classType = 'warning';
+            if (t.action.includes('Paused')) classType = 'info';
+            
+            return `
+              <div class="timeline-item ${classType}">
+                <div class="timeline-badge"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <span class="timeline-user">${escapeHtml(t.user_name)} (${escapeHtml(t.role.toUpperCase())})</span>
+                    <span class="timeline-time">${new Date(t.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div class="timeline-title">${escapeHtml(t.action)}</div>
+                  <div class="timeline-remarks">${escapeHtml(t.remarks || '')}</div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Display workflow action buttons dynamically
+        renderWorkflowActionButtons(o);
+
+        openModal('order-details-modal');
+      } catch (e) { console.error(e); }
+    }
+
+    function renderWorkflowActionButtons(order) {
+      const footer = document.getElementById('details-action-buttons');
+      let html = '<button class="btn btn-outline" onclick="closeModal(\'order-details-modal\')">Close</button>';
+      
+      const role = CURRENT_USER.role;
+      const status = order.status;
+
+      // Edit button (always editable)
+      if (role === 'admin' || role === 'sales') {
+        html += `<button class="btn btn-outline" onclick="closeModal('order-details-modal'); openOrderModal(${order.id})" style="border-color:var(--accent); color:var(--accent);">📝 Edit Order</button>`;
+      }
+
+      // Get status actions based on role
+      let actions = [];
+      if (role === 'admin' || role === 'sales') {
+        actions = getNextActions(status);
+      } else if (role === 'manufacturing') {
+        actions = getMfgActions(status);
+      }
+
+      actions.forEach(a => {
+        const style = a.color ? `background:${a.color}; color:#000; border-color:${a.color};` : '';
+        html += `<button class="btn btn-primary" onclick="changeOrderStatus(${order.id}, '${a.s}')" style="${style}">${a.label}</button>`;
+      });
+
+      footer.innerHTML = html;
+    }
+
+
+    // ==================== INVENTORY (Product-wise Material Stock View) ====================
+    async function loadInventory() {
+      try {
+        const data = await apiFetch('/inventory/materials');
+        const container = document.getElementById('inventory-product-list');
+        const role = CURRENT_USER.role;
+
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="empty-state">No products with materials found. Add products with BOM materials first.</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(p => {
+          const matRows = p.materials.map(m => `
+            <tr>
+              <td><strong>${escapeHtml(m.material_name)}</strong></td>
+              <td>${escapeHtml(m.unit)}</td>
+              <td><strong>${m.stock_quantity.toFixed(2)}</strong></td>
+              <td>${m.min_stock_level.toFixed(2)}</td>
+              <td>${m.quantity_per_unit.toFixed(2)}</td>
+              <td><span class="badge ${m.status === 'ok' ? 'badge-ok' : 'badge-warning'}">${m.status.toUpperCase()}</span></td>
+              <td>
+                ${role === 'admin' ? `<button class="btn btn-outline btn-sm" onclick="editMaterialStock(${m.id}, ${m.stock_quantity}, ${m.min_stock_level})" style="font-size:11px;">✏️ Edit</button>` : '-'}
+              </td>
+            </tr>
+          `).join('');
+
+          return `
+            <div style="margin-bottom:20px; border:1px solid var(--border); border-radius:10px; padding:16px;">
+              <div style="font-weight:700; font-size:15px; margin-bottom:10px; color:var(--accent);">
+                📦 ${escapeHtml(p.product_name)} <code style="font-size:11px; color:var(--text-muted); margin-left:8px;">${escapeHtml(p.product_sku || '')}</code>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Material Name</th>
+                      <th>Unit</th>
+                      <th>Stock Qty</th>
+                      <th>Min Level</th>
+                      <th>Qty per Product</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>${matRows}</tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function editMaterialStock(materialId, currentStock, currentMin) {
+      const newStock = prompt(`Enter new stock quantity (current: ${currentStock}):`, currentStock);
+      if (newStock === null) return;
+      const newMin = prompt(`Enter new minimum stock level (current: ${currentMin}):`, currentMin);
+      if (newMin === null) return;
+
+      try {
+        await apiFetch(`/inventory/material/${materialId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ quantity: parseFloat(newStock), min_stock_level: parseFloat(newMin) })
+        });
+        toast('Material stock updated');
+        loadInventory();
+      } catch (e) {}
+    }
+
+
+    // ==================== MANUFACTURING (Order Queue from API) ====================
+    async function loadManufacturing() {
+      try {
+        const list = await apiFetch('/orders/manufacturing');
+        const tbody = document.getElementById('manufacturing-body');
+        if (list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No orders in manufacturing pipeline.</td></tr>';
+          return;
+        }
+
+        const role = CURRENT_USER.role;
+        tbody.innerHTML = list.map(o => {
+          const actions = (role === 'admin' || role === 'manufacturing') ? getMfgActions(o.status) : [];
+          const products = o.items ? o.items.map(i => escapeHtml(i.product_name)).join(', ') : '-';
+          
+          let actionDropdown = '';
+          if (actions.length > 0) {
+            actionDropdown = `
+              <select class="filter-select" style="font-size:11px; padding:4px 8px; margin: 0 4px; width:150px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:6px; cursor:pointer;" onchange="if(this.value) { changeOrderStatus(${o.id}, this.value); this.value=''; }">
+                <option value="">Update Status...</option>
+                ${actions.map(a => `<option value="${a.s}">${a.label}</option>`).join('')}
+              </select>
+            `;
+          }
+
+          return `
+            <tr>
+              <td><a href="#" onclick="viewOrderDetails(${o.id}); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
+              <td>${escapeHtml(o.customer?.name || 'Walk-in')}</td>
+              <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${products}</td>
+              <td>${o.delivery_date || 'N/A'}</td>
+              <td><span class="badge ${o.priority === 'high' ? 'badge-danger' : 'badge-info'}">${o.priority}</span></td>
+              <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+              <td style="min-width:300px;">
+                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails(${o.id})" style="font-size:11px; padding:4px 8px;">🔍 Details</button>
+                ${actionDropdown}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+
+    // ==================== REPORTS API WORKSPACE ====================
+    let activeReportTab = 'order';
+
+    function switchReportTab(tab) {
+      activeReportTab = tab;
+      document.querySelectorAll('.report-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const buttons = document.querySelectorAll('.report-tab-btn');
+      
+      const idxMap = { order: 0, manufacturing: 1, inventory: 2, consumption: 3, customer: 4 };
+      if (buttons[idxMap[tab]]) {
+        buttons[idxMap[tab]].classList.add('active');
+      }
+      loadReports();
+    }
+
+    async function loadReports() {
+      const container = document.getElementById('report-view-container');
+      container.innerHTML = '<div class="empty-state">Generating analytical reports...</div>';
+
+      try {
+        if (activeReportTab === 'order') {
+          const data = await apiFetch('/reports/orders');
+          if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No orders data recorded yet.</div>';
+            return;
+          }
+          container.innerHTML = `
+            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Order Status Distribution Summary</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Workflow Status</th>
+                    <th>Orders Count</th>
+                    <th>Total Value Billed (Rs)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(r => `
+                    <tr>
+                      <td><span class="badge badge-${r.status}">${r.status.replace('_', ' ')}</span></td>
+                      <td><strong>${r.count}</strong></td>
+                      <td>₹${r.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        if (activeReportTab === 'manufacturing') {
+          const data = await apiFetch('/reports/manufacturing');
+          if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No manufacturing run histories logged.</div>';
+            return;
+          }
+          container.innerHTML = `
+            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Historical Manufacturing Activity Logs</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Order Ref</th>
+                    <th>Started At</th>
+                    <th>Completed At</th>
+                    <th>Duration</th>
+                    <th>Started By</th>
+                    <th>Completed By</th>
+                    <th>Production Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(r => `
+                    <tr>
+                      <td><strong>${r.order_number}</strong></td>
+                      <td>${r.started_at ? new Date(r.started_at).toLocaleString() : '-'}</td>
+                      <td>${r.completed_at ? new Date(r.completed_at).toLocaleString() : '-'}</td>
+                      <td><code style="color:var(--accent2);">${r.duration || 'In Progress'}</code></td>
+                      <td>${escapeHtml(r.started_by)}</td>
+                      <td>${escapeHtml(r.completed_by)}</td>
+                      <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(r.remarks || '')}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        if (activeReportTab === 'inventory') {
+          const data = await apiFetch('/reports/inventory');
+          if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">Raw materials Master catalog empty.</div>';
+            return;
+          }
+          const totalValuation = data.reduce((acc, m) => acc + m.valuation, 0);
+          container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <div style="font-weight:700; font-size:15px;">Raw Material Stock Valuation Catalog</div>
+              <div>Total Asset Worth: <strong style="color:var(--accent2); font-size:16px;">₹${totalValuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Material Name</th>
+                    <th>Stock Qty</th>
+                    <th>Unit</th>
+                    <th>Master Price / Unit (Rs)</th>
+                    <th>Valuation (Rs)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(r => `
+                    <tr>
+                      <td><code>${escapeHtml(r.code)}</code></td>
+                      <td><strong>${escapeHtml(r.name)}</strong></td>
+                      <td>${r.stock_quantity.toFixed(2)}</td>
+                      <td>${escapeHtml(r.unit)}</td>
+                      <td>₹${r.rate.toFixed(2)}</td>
+                      <td><strong>₹${r.valuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                      <td><span class="badge badge-${r.status === 'ok' ? 'ok' : 'warning'}">${r.status.toUpperCase()}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        if (activeReportTab === 'consumption') {
+          const data = await apiFetch('/reports/material-consumption');
+          if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No materials consumption logged. Consumptions record upon production start.</div>';
+            return;
+          }
+          container.innerHTML = `
+            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Aggregated Material Consumption & Production Costs</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Material Code</th>
+                    <th>Material Name</th>
+                    <th>Total Qty Consumed</th>
+                    <th>Unit</th>
+                    <th>Aggregated Cost Billed (Rs)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(r => `
+                    <tr>
+                      <td><code>${escapeHtml(r.material_code)}</code></td>
+                      <td><strong>${escapeHtml(r.material_name)}</strong></td>
+                      <td>${r.total_consumed.toFixed(2)}</td>
+                      <td>${escapeHtml(r.unit)}</td>
+                      <td><strong>₹${r.total_cost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+
+        if (activeReportTab === 'customer') {
+          const data = await apiFetch('/reports/customers');
+          if (data.length === 0) {
+            container.innerHTML = '<div class="empty-state">No client spend information.</div>';
+            return;
+          }
+          container.innerHTML = `
+            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Client Spend & Order Count Leaderboard</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Client Name</th>
+                    <th>Email Contact</th>
+                    <th>Orders Placed</th>
+                    <th>Cumulative Purchases (Rs)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map((r, idx) => `
+                    <tr>
+                      <td><strong>#${idx + 1}</strong></td>
+                      <td><strong>${escapeHtml(r.customer_name)}</strong></td>
+                      <td>${escapeHtml(r.customer_email)}</td>
+                      <td><strong>${r.orders_count}</strong></td>
+                      <td style="color:var(--accent2); font-weight:bold;">₹${r.total_spend.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+      } catch (e) {
+        container.innerHTML = '<div class="empty-state" style="color:var(--danger);">Request error rendering data.</div>';
+      }
+    }
+
+
+    // ==================== USER PRIVILEGES (Admin Users CRUD) ====================
+    async function loadUsers() {
+      if (CURRENT_USER.role !== 'admin') return;
+
+      try {
+        const users = await apiFetch('/admin/users');
+        const grid = document.getElementById('users-grid');
+        if (users.length === 0) {
+          grid.innerHTML = '<div class="empty-state">No user accounts found.</div>';
+          return;
+        }
+
+        grid.innerHTML = users.map(u => `
+          <div class="card" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:space-between; height: 160px; padding: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <strong style="font-size:15px;">${escapeHtml(u.name)}</strong><br>
+                <small style="color:var(--text-muted); font-size:12px;">${escapeHtml(u.email)}</small>
+              </div>
+              <span class="badge ${u.role === 'admin' ? 'badge-danger' : 'badge-ok'}">${u.role}</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})">Edit</button>
+              ${u.id !== CURRENT_USER.id ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Delete</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function openUserModal() {
+      document.getElementById('edit-user-id').value = '';
+      document.getElementById('u-name').value = '';
+      document.getElementById('u-email').value = '';
+      document.getElementById('u-password').value = '';
+      document.getElementById('u-role').value = 'sales';
+      document.getElementById('user-modal-title').textContent = 'Create User Account';
+      openModal('user-modal');
+    }
+
+    async function editUser(id) {
+      try {
+        const users = await apiFetch('/admin/users');
+        const user = users.find(u => u.id === id);
+        if (!user) { toast('User not found', 'error'); return; }
+
+        document.getElementById('edit-user-id').value = user.id;
+        document.getElementById('u-name').value = user.name;
+        document.getElementById('u-email').value = user.email;
+        document.getElementById('u-password').value = '';
+        document.getElementById('u-role').value = user.role;
+        document.getElementById('user-modal-title').textContent = 'Edit User Account';
+        openModal('user-modal');
+      } catch (e) {}
+    }
+
+    async function saveUser() {
+      const id = document.getElementById('edit-user-id').value;
+      const payload = {
+        name: document.getElementById('u-name').value,
+        email: document.getElementById('u-email').value,
+        password: document.getElementById('u-password').value,
+        role: document.getElementById('u-role').value
+      };
+
+      if (!payload.name || !payload.email) {
+        toast('Name and email are mandatory fields', 'error');
+        return;
+      }
+
+      try {
+        if (id) {
+          await apiFetch(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          toast('User privileges modified');
+        } else {
+          if (!payload.password) { toast('Password is required for new account', 'error'); return; }
+          await apiFetch('/admin/users', { method: 'POST', body: JSON.stringify(payload) });
+          toast('New account registered successfully');
+        }
+        closeModal('user-modal');
+        loadUsers();
+      } catch (e) {}
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Permanently delete this user account?')) return;
+      try {
+        await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+        toast('User deleted');
+        loadUsers();
+      } catch (e) {}
+    }
+
+
+    // ==================== LOGOUT & THEME TOGGLE ====================
+    function toggleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('erp_theme', next);
+      const btn = document.getElementById('themeBtn');
+      if (btn) btn.textContent = next === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    function doLogout() {
+      localStorage.removeItem('erp_token');
+      localStorage.removeItem('erp_user');
+      window.location.href = '/login';
+    }
+
+    // Sidebar access control on startup
+    if (CURRENT_USER) {
+      document.getElementById('user-avatar').textContent = (CURRENT_USER.name || 'AD').substring(0, 2).toUpperCase();
+      document.getElementById('sidebar-username').textContent = CURRENT_USER.name || 'Admin';
+      document.getElementById('sidebar-role').textContent = CURRENT_USER.role;
+
+      const role = CURRENT_USER.role;
+      if (role === 'admin') {
+        document.getElementById('nav-orders').style.display = '';
+        document.getElementById('nav-customers').style.display = '';
+        document.getElementById('nav-products').style.display = '';
+        document.getElementById('nav-materials').style.display = '';
+        document.getElementById('nav-inventory').style.display = '';
+        document.getElementById('nav-manufacturing').style.display = '';
+        document.getElementById('nav-reports').style.display = '';
+        document.getElementById('admin-section').style.display = '';
+        document.getElementById('nav-users').style.display = '';
+      } else if (role === 'sales') {
+        document.getElementById('nav-orders').style.display = '';
+        document.getElementById('nav-customers').style.display = '';
+        document.getElementById('nav-products').style.display = '';
+      } else if (role === 'inventory') {
+        document.getElementById('nav-inventory').style.display = '';
+        document.getElementById('nav-materials').style.display = '';
+      } else if (role === 'manufacturing') {
+        document.getElementById('nav-manufacturing').style.display = '';
+      }
+    }
+
+    // Initialize Startup Page
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restore theme
+      const savedTheme = localStorage.getItem('erp_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const btn = document.getElementById('themeBtn');
+      if (btn) btn.textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
+
+      // Auto route based on privileges
+      if (CURRENT_USER.role === 'admin' || CURRENT_USER.role === 'sales') {
+        navigate('dashboard');
+      } else if (CURRENT_USER.role === 'inventory') {
+        navigate('inventory');
+      } else if (CURRENT_USER.role === 'manufacturing') {
+        navigate('manufacturing');
+      }
+    });
+  </script>
+</body>
+
+</html>
