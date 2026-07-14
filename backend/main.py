@@ -81,6 +81,16 @@ def material_qty_per_unit(value, default=1.0):
     return qty if qty > 0 else default
 
 def material_response(material):
+    if material.material:
+        return {
+            "id": material.id,
+            "material_name": material.material.name,
+            "unit": material.material.unit or "pcs",
+            "quantity_per_unit": material_qty_per_unit(material.quantity_per_unit),
+            "stock_quantity": to_float(material.material.stock_quantity),
+            "min_stock_level": to_float(material.material.min_stock_level),
+            "status": material.material.status or "ok"
+        }
     return {
         "id": material.id,
         "material_name": material.material_name,
@@ -100,14 +110,14 @@ def manufacture_requirements(product_id: int, qty: int, db: Session):
     for material in materials:
         per_unit = material_qty_per_unit(material.quantity_per_unit)
         needed = round(per_unit * qty, 4)
-        available = to_float(material.stock_quantity)
+        available = to_float(material.material.stock_quantity if material.material else material.stock_quantity)
         sufficient = available >= needed
         if not sufficient:
             can_manufacture = False
         rows.append({
             "id": material.id,
-            "material_name": material.material_name,
-            "unit": material.unit or "pcs",
+            "material_name": material.material.name if material.material else material.material_name,
+            "unit": (material.material.unit if material.material else material.unit) or "pcs",
             "quantity_per_unit": per_unit,
             "needed": needed,
             "available": available,
@@ -456,6 +466,55 @@ def delete_customer(
     return {"message": "Customer deleted (hidden)"}
 
 # ─── PRODUCTS ────────────────────────────────────────────
+def resolve_and_create_material(db: Session, comp: dict) -> int:
+    m_code = comp.get("material_code")
+    if m_code:
+        m_code = m_code.strip()
+    m_name = comp.get("material_name") or ""
+    m_unit = comp.get("unit") or "pcs"
+    m_rate = float(comp.get("price") if comp.get("price") is not None else 0.00)
+    m_stock = float(comp.get("stock_quantity") if comp.get("stock_quantity") is not None else 0.00)
+    m_min = float(comp.get("min_stock_level") if comp.get("min_stock_level") is not None else 10.00)
+
+    if not m_code:
+        if m_name:
+            import re, hashlib
+            clean_name = re.sub(r'[^A-Za-z0-9]', '', m_name).upper()
+            m_code = f"MAT-{clean_name[:15]}" if clean_name else f"MAT-{hashlib.md5(m_name.encode()).hexdigest()[:8].upper()}"
+        else:
+            mat_id = comp.get("material_id")
+            if mat_id:
+                db_mat = db.query(models.Material).filter(models.Material.id == mat_id).first()
+                if db_mat:
+                    db_mat.is_deleted = False
+                    db_mat.is_active = True
+                    return db_mat.id
+            return None
+
+    db_mat = db.query(models.Material).filter(models.Material.code == m_code).first()
+    if db_mat:
+        db_mat.name = m_name or db_mat.name
+        db_mat.unit = m_unit or db_mat.unit
+        db_mat.rate = m_rate
+        db_mat.min_stock_level = m_min
+        db_mat.is_deleted = False
+        db_mat.is_active = True
+        db_mat.status = "ok" if db_mat.stock_quantity > db_mat.min_stock_level else "low"
+    else:
+        db_mat = models.Material(
+            name=m_name or m_code,
+            code=m_code,
+            unit=m_unit,
+            rate=m_rate,
+            stock_quantity=m_stock,
+            min_stock_level=m_min,
+            status="ok" if m_stock > m_min else "low",
+            is_active=True
+        )
+        db.add(db_mat)
+        db.flush()
+    return db_mat.id
+
 @app.post("/api/products")
 def create_product(
     req: dict,
@@ -477,27 +536,29 @@ def create_product(
     db.flush()
 
     for comp in req.get("components", []):
-        material_id = comp.get("material_id")
         material_name = comp.get("material_name") or ""
-        unit = comp.get("unit")
-        price = float(comp.get("price", 0.00))
+        unit = comp.get("unit") or "pcs"
+        price = float(comp.get("price") if comp.get("price") is not None else 0.00)
         qty = float(comp.get("quantity_per_unit") or 1.0)
         
+        # Dynamically search or create the raw material
+        material_id = resolve_and_create_material(db, comp)
         if material_id:
             db_mat = db.query(models.Material).filter(models.Material.id == material_id).first()
             if db_mat:
                 material_name = db_mat.name
-                unit = unit or db_mat.unit
-                if "price" not in comp or comp.get("price") is None:
-                    price = db_mat.rate
-        
+                unit = db_mat.unit
+                price = db_mat.rate
+
         db.add(models.ProductMaterial(
             parent_product_id=product.id,
             material_id=material_id,
             material_name=material_name,
-            unit=unit or "pcs",
+            unit=unit,
             quantity_per_unit=qty,
-            price=price
+            price=price,
+            stock_quantity=float(comp.get("stock_quantity") or 0.00),
+            min_stock_level=float(comp.get("min_stock_level") or 10.00)
         ))
 
     db.commit()
@@ -533,9 +594,12 @@ def get_products(
                 "id": c.id,
                 "material_id": c.material_id,
                 "material_name": c.material.name if c.material else c.material_name,
-                "unit": c.unit,
+                "material_code": c.material.code if c.material else "",
+                "unit": c.material.unit if c.material else c.unit,
                 "quantity_per_unit": c.quantity_per_unit,
-                "price": c.price
+                "price": c.material.rate if c.material else c.price,
+                "stock_quantity": c.material.stock_quantity if c.material else c.stock_quantity,
+                "min_stock_level": c.material.min_stock_level if c.material else c.min_stock_level
             })
         result.append(p_dict)
     return result
@@ -558,30 +622,30 @@ def update_product(
     if "product_type" in req:
         product.product_type = req["product_type"]
 
-    # Delete and recreate components
     db.query(models.ProductMaterial).filter(models.ProductMaterial.parent_product_id == product.id).delete()
     for comp in req.get("components", []):
-        material_id = comp.get("material_id")
         material_name = comp.get("material_name") or ""
-        unit = comp.get("unit")
-        price = float(comp.get("price", 0.00))
+        unit = comp.get("unit") or "pcs"
+        price = float(comp.get("price") if comp.get("price") is not None else 0.00)
         qty = float(comp.get("quantity_per_unit") or 1.0)
         
+        material_id = resolve_and_create_material(db, comp)
         if material_id:
             db_mat = db.query(models.Material).filter(models.Material.id == material_id).first()
             if db_mat:
                 material_name = db_mat.name
-                unit = unit or db_mat.unit
-                if "price" not in comp or comp.get("price") is None:
-                    price = db_mat.rate
+                unit = db_mat.unit
+                price = db_mat.rate
 
         db.add(models.ProductMaterial(
             parent_product_id=product.id,
             material_id=material_id,
             material_name=material_name,
-            unit=unit or "pcs",
+            unit=unit,
             quantity_per_unit=qty,
-            price=price
+            price=price,
+            stock_quantity=float(comp.get("stock_quantity") or 0.00),
+            min_stock_level=float(comp.get("min_stock_level") or 10.00)
         ))
 
     db.commit()
@@ -757,11 +821,16 @@ def update_material_inventory(
         if quantity < 0:
             raise HTTPException(status_code=400, detail="Material stock cannot be negative")
         material.stock_quantity = quantity
+        if material.material:
+            material.material.stock_quantity = quantity
     if "min_stock_level" in req:
         min_stock_level = to_float(req["min_stock_level"], -1)
         if min_stock_level < 0:
             raise HTTPException(status_code=400, detail="Minimum stock level cannot be negative")
         material.min_stock_level = min_stock_level
+        if material.material:
+            material.material.min_stock_level = min_stock_level
+            material.material.status = "ok" if material.material.stock_quantity > min_stock_level else "low"
     if "quantity_per_unit" in req:
         quantity_per_unit = to_float(req["quantity_per_unit"], -1)
         if quantity_per_unit <= 0:
@@ -1065,9 +1134,9 @@ def list_raw_materials(
 def add_new_material(
     material: schemas.MaterialCreate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(require_sales)
 ):
-    """Create a new raw material item (Admin only)."""
+    """Create a new raw material item."""
     # Check for duplicate code
     existing = crud.get_material_by_code(db, material.code)
     if existing:
@@ -1182,14 +1251,27 @@ def create_customer_order(
         
         # Save product-wise materials
         for mat in item.materials:
-            db_material = db.query(models.Material).filter(models.Material.id == mat.material_id).first()
+            mat_dict = {
+                "material_id": mat.material_id,
+                "material_name": mat.material_name,
+                "material_code": mat.material_code,
+                "unit": mat.unit,
+                "price": mat.rate,
+                "stock_quantity": 0.0,
+                "min_stock_level": 10.0
+            }
+            resolved_id = resolve_and_create_material(db, mat_dict)
+            if not resolved_id:
+                raise HTTPException(status_code=400, detail="Could not resolve raw material reference")
+            
+            db_material = db.query(models.Material).filter(models.Material.id == resolved_id).first()
             if not db_material or db_material.is_deleted:
-                raise HTTPException(status_code=400, detail=f"Invalid material ID {mat.material_id}")
+                raise HTTPException(status_code=400, detail=f"Invalid material reference")
                 
             order_material = models.OrderMaterial(
                 order_id=order.id,
                 order_item_id=order_item.id,
-                material_id=mat.material_id,
+                material_id=resolved_id,
                 required_qty=mat.required_qty,
                 used_qty=0.0,
                 unit=mat.unit or db_material.unit or "pcs",
@@ -1272,13 +1354,27 @@ def update_customer_order(
         
         # Save product-wise materials
         for mat in item.materials:
-            db_material = db.query(models.Material).filter(models.Material.id == mat.material_id).first()
-            if not db_material:
-                raise HTTPException(status_code=400, detail="Invalid material reference")
+            mat_dict = {
+                "material_id": mat.material_id,
+                "material_name": mat.material_name,
+                "material_code": mat.material_code,
+                "unit": mat.unit,
+                "price": mat.rate,
+                "stock_quantity": 0.0,
+                "min_stock_level": 10.0
+            }
+            resolved_id = resolve_and_create_material(db, mat_dict)
+            if not resolved_id:
+                raise HTTPException(status_code=400, detail="Could not resolve raw material reference")
+            
+            db_material = db.query(models.Material).filter(models.Material.id == resolved_id).first()
+            if not db_material or db_material.is_deleted:
+                raise HTTPException(status_code=400, detail=f"Invalid material reference")
+                
             order_material = models.OrderMaterial(
                 order_id=order.id,
                 order_item_id=order_item.id,
-                material_id=mat.material_id,
+                material_id=resolved_id,
                 required_qty=mat.required_qty,
                 used_qty=0.0,
                 unit=mat.unit or db_material.unit or "pcs",
@@ -1421,7 +1517,19 @@ def update_order_status(
             )
             db.add(mfg_log)
 
+    elif new_status == "ready_to_dispatch":
+        if prev_status != "start_processing":
+            raise HTTPException(
+                status_code=400,
+                detail="Order must be in 'start_processing' (Processing) state before it can be marked as 'ready_to_dispatch'."
+            )
+
     elif new_status in ["dispatched", "completed"]:
+        if new_status == "dispatched" and prev_status != "ready_to_dispatch":
+            raise HTTPException(
+                status_code=400,
+                detail="Order must be in 'ready_to_dispatch' state before it can be marked as 'dispatched'."
+            )
         mfg_log = db.query(models.ManufacturingLog).filter(
             models.ManufacturingLog.order_id == order.id,
             models.ManufacturingLog.completed_at == None
@@ -1668,6 +1776,7 @@ def get_order_details(
         "priority": order.priority,
         "order_date": order.order_date,
         "delivery_date": order.delivery_date,
+        "inventory_deducted": order.inventory_deducted,
         "customer": cust,
         "items": items_list,
         "order_materials": om_list,

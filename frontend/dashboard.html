@@ -164,7 +164,7 @@
     .sidebar-footer {
       padding: 20px;
       border-top: 1px solid var(--border);
-      background: rgba(0,0,0,0.05);
+      background: rgba(0, 0, 0, 0.05);
     }
 
     .user-card {
@@ -273,6 +273,7 @@
         opacity: 0;
         transform: translateY(10px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -329,10 +330,21 @@
       background: var(--accent);
     }
 
-    .stat-card.approved::before { background: var(--success); }
-    .stat-card.pending::before { background: var(--pending); }
-    .stat-card.warning::before { background: var(--warning); }
-    .stat-card.danger::before { background: var(--danger); }
+    .stat-card.approved::before {
+      background: var(--success);
+    }
+
+    .stat-card.pending::before {
+      background: var(--pending);
+    }
+
+    .stat-card.warning::before {
+      background: var(--warning);
+    }
+
+    .stat-card.danger::before {
+      background: var(--danger);
+    }
 
     .stat-label {
       font-size: 12px;
@@ -404,8 +416,8 @@
     }
 
     .btn-danger {
-      background: rgba(255,107,107,0.1);
-      border-color: rgba(255,107,107,0.2);
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.2);
       color: var(--danger);
     }
 
@@ -451,7 +463,7 @@
     }
 
     tr:hover td {
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .empty-state {
@@ -472,35 +484,132 @@
       letter-spacing: 0.5px;
     }
 
-    .badge-pending          { background: rgba(108,99,255,0.15); color: var(--pending); }
-    .badge-ok               { background: rgba(0,212,170,0.15); color: var(--success); }
-    .badge-warning          { background: rgba(255,169,77,0.15); color: var(--warning); }
-    .badge-danger           { background: rgba(255,107,107,0.15); color: var(--danger); }
-    .badge-info             { background: rgba(108,99,255,0.15); color: var(--pending); }
-    /* New 3-dept workflow status badges */
-    .badge-order_confirmed  { background: rgba(108,99,255,0.18); color: #a29bfe; }
-    .badge-payment_received { background: rgba(0,212,170,0.18); color: var(--success); }
-    .badge-ready_to_process { background: rgba(255,169,77,0.2); color: var(--warning); }
-    .badge-start_processing { background: rgba(253,121,168,0.18); color: #fd79a8; }
-    .badge-ready_to_dispatch{ background: rgba(0,206,201,0.18); color: #00cec9; }
-    .badge-dispatched       { background: rgba(0,212,170,0.22); color: #00d4aa; font-weight: 800; }
-    .badge-paused           { background: rgba(255,169,77,0.12); color: var(--text-muted); }
-    .badge-other            { background: rgba(99,110,114,0.18); color: #b2bec3; }
-    .badge-cancelled        { background: rgba(255,107,107,0.18); color: var(--danger); }
-    .badge-completed        { background: rgba(0,212,170,0.22); color: #00d4aa; }
-    .badge-need_purchase    { background: rgba(255,169,77,0.15); color: var(--warning); }
-    .badge-inventory_approved { background: rgba(0,212,170,0.15); color: var(--success); }
-    .badge-manufacturing    { background: rgba(253,121,168,0.15); color: #fd79a8; }
-    .badge-manufactured     { background: rgba(0,206,201,0.15); color: #00cec9; }
-    /* Sub-tabs for orders page */
-    .order-subtabs { display:flex; gap:0; margin-bottom:16px; border-bottom:2px solid var(--border); }
-    .order-subtab-btn {
-      padding: 10px 22px; font-size:13px; font-weight:600; cursor:pointer;
-      background:none; border:none; color:var(--text-muted); border-bottom:3px solid transparent;
-      margin-bottom:-2px; transition: all 0.2s;
+    .badge-pending {
+      background: rgba(108, 99, 255, 0.15);
+      color: var(--pending);
     }
-    .order-subtab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
-    .order-subtab-btn:hover { color:var(--text); }
+
+    .badge-ok {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: rgba(255, 169, 77, 0.15);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: rgba(255, 107, 107, 0.15);
+      color: var(--danger);
+    }
+
+    .badge-info {
+      background: rgba(108, 99, 255, 0.15);
+      color: var(--pending);
+    }
+
+    /* New 3-dept workflow status badges */
+    .badge-order_confirmed {
+      background: rgba(108, 99, 255, 0.18);
+      color: #a29bfe;
+    }
+
+    .badge-payment_received {
+      background: rgba(0, 212, 170, 0.18);
+      color: var(--success);
+    }
+
+    .badge-ready_to_process {
+      background: rgba(255, 169, 77, 0.2);
+      color: var(--warning);
+    }
+
+    .badge-start_processing {
+      background: rgba(253, 121, 168, 0.18);
+      color: #fd79a8;
+    }
+
+    .badge-ready_to_dispatch {
+      background: rgba(0, 206, 201, 0.18);
+      color: #00cec9;
+    }
+
+    .badge-dispatched {
+      background: rgba(0, 212, 170, 0.22);
+      color: #00d4aa;
+      font-weight: 800;
+    }
+
+    .badge-paused {
+      background: rgba(255, 169, 77, 0.12);
+      color: var(--text-muted);
+    }
+
+    .badge-other {
+      background: rgba(99, 110, 114, 0.18);
+      color: #b2bec3;
+    }
+
+    .badge-cancelled {
+      background: rgba(255, 107, 107, 0.18);
+      color: var(--danger);
+    }
+
+    .badge-completed {
+      background: rgba(0, 212, 170, 0.22);
+      color: #00d4aa;
+    }
+
+    .badge-need_purchase {
+      background: rgba(255, 169, 77, 0.15);
+      color: var(--warning);
+    }
+
+    .badge-inventory_approved {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--success);
+    }
+
+    .badge-manufacturing {
+      background: rgba(253, 121, 168, 0.15);
+      color: #fd79a8;
+    }
+
+    .badge-manufactured {
+      background: rgba(0, 206, 201, 0.15);
+      color: #00cec9;
+    }
+
+    /* Sub-tabs for orders page */
+    .order-subtabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .order-subtab-btn {
+      padding: 10px 22px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+
+    .order-subtab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .order-subtab-btn:hover {
+      color: var(--text);
+    }
 
     /* ── Toolbar & Forms ────────────────────────────────── */
     .toolbar {
@@ -559,7 +668,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(5,6,10,0.8);
+      background: rgba(5, 6, 10, 0.8);
       backdrop-filter: blur(4px);
       z-index: 1000;
       display: flex;
@@ -624,9 +733,10 @@
       padding: 16px 24px;
       border-top: 1px solid var(--border);
       display: flex;
+      flex-wrap: wrap;
       justify-content: flex-end;
       gap: 12px;
-      background: rgba(0,0,0,0.05);
+      background: rgba(0, 0, 0, 0.05);
       border-radius: 0 0 20px 20px;
     }
 
@@ -653,7 +763,9 @@
       font-weight: 600;
     }
 
-    .form-group input, .form-group select, .form-group textarea {
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--border);
@@ -669,7 +781,9 @@
       min-height: 80px;
     }
 
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
       border-color: var(--accent);
     }
 
@@ -714,9 +828,17 @@
       border: 3px solid var(--accent);
     }
 
-    .timeline-item.success .timeline-badge { border-color: var(--success); }
-    .timeline-item.danger .timeline-badge { border-color: var(--danger); }
-    .timeline-item.warning .timeline-badge { border-color: var(--warning); }
+    .timeline-item.success .timeline-badge {
+      border-color: var(--success);
+    }
+
+    .timeline-item.danger .timeline-badge {
+      border-color: var(--danger);
+    }
+
+    .timeline-item.warning .timeline-badge {
+      border-color: var(--warning);
+    }
 
     .timeline-content {
       background: var(--surface2);
@@ -772,23 +894,37 @@
       padding: 12px 20px;
       color: var(--text);
       font-size: 13px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       gap: 10px;
       animation: slideIn 0.3s ease forwards;
     }
 
-    .toast.error { border-color: var(--danger); }
-    .toast.success { border-color: var(--success); }
+    .toast.error {
+      border-color: var(--danger);
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
 
     @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     @keyframes fadeOut {
-      to { opacity: 0; }
+      to {
+        opacity: 0;
+      }
     }
 
     /* Reports tab buttons */
@@ -848,9 +984,7 @@
         <a class="nav-item" id="nav-products" onclick="navigate('products')" style="display:none">
           <span class="icon">🏷️</span> Products
         </a>
-        <a class="nav-item" id="nav-materials" onclick="navigate('materials')" style="display:none">
-          <span class="icon">🪵</span> Materials
-        </a>
+        <!-- Standalone Material Master hidden as requested -->
         <a class="nav-item" id="nav-inventory" onclick="navigate('inventory')" style="display:none">
           <span class="icon">📊</span> Inventory
         </a>
@@ -913,7 +1047,7 @@
               <div class="stat-icon">⚠️</div>
             </div>
           </div>
-          
+
           <div class="card">
             <div class="card-title" style="margin-bottom: 15px;">Order Workflow Status Breakdown</div>
             <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
@@ -985,13 +1119,16 @@
         <div class="page" id="page-orders">
           <!-- Sub-tabs -->
           <div class="order-subtabs">
-            <button class="order-subtab-btn active" id="tab-active-orders" onclick="switchOrderTab('active')">📋 Active Orders</button>
-            <button class="order-subtab-btn" id="tab-completed-orders" onclick="switchOrderTab('completed')">✅ Completed Orders</button>
+            <button class="order-subtab-btn active" id="tab-active-orders" onclick="switchOrderTab('active')">📋 Active
+              Orders</button>
+            <button class="order-subtab-btn" id="tab-completed-orders" onclick="switchOrderTab('completed')">✅ Completed
+              Orders</button>
           </div>
           <!-- Active Orders -->
           <div id="panel-active-orders">
             <div class="toolbar">
-              <div class="search-box"><span>🔍</span><input type="text" placeholder="Search orders..." id="order-search"></div>
+              <div class="search-box"><span>🔍</span><input type="text" placeholder="Search orders..."
+                  id="order-search"></div>
               <select class="filter-select" id="order-status-filter" onchange="loadOrders()">
                 <option value="">All Active</option>
                 <option value="pending">Pending</option>
@@ -1020,7 +1157,9 @@
                     </tr>
                   </thead>
                   <tbody id="orders-body">
-                    <tr><td colspan="7" class="empty-state">No orders found.</td></tr>
+                    <tr>
+                      <td colspan="7" class="empty-state">No orders found.</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1043,7 +1182,9 @@
                     </tr>
                   </thead>
                   <tbody id="completed-orders-body">
-                    <tr><td colspan="7" class="empty-state">No completed orders yet.</td></tr>
+                    <tr>
+                      <td colspan="7" class="empty-state">No completed orders yet.</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1101,35 +1242,7 @@
           </div>
         </div>
 
-        <!-- Materials Page -->
-        <div class="page" id="page-materials">
-          <div class="toolbar">
-            <div class="search-box"><span>🔍</span><input type="text" placeholder="Search materials..." id="material-search" oninput="loadMaterials()"></div>
-          </div>
-          <div class="card">
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Material Name</th>
-                    <th>Unit</th>
-                    <th>Rate (Rs)</th>
-                    <th>Stock Qty</th>
-                    <th>Min Level</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="materials-body">
-                  <tr>
-                    <td colspan="8" class="empty-state">No raw materials defined.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <!-- Materials Page commented out as requested by user -->
 
         <!-- Inventory Page (Product-wise Material Stock View) -->
         <div class="page" id="page-inventory">
@@ -1194,7 +1307,8 @@
               <div class="card-title">User Account Registry</div>
               <button class="btn btn-primary" onclick="openUserModal()">+ Add User</button>
             </div>
-            <div id="users-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <div id="users-grid"
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
               <div class="empty-state">Loading users...</div>
             </div>
           </div>
@@ -1248,7 +1362,7 @@
 
   <!-- Product Modal -->
   <div class="modal-overlay" id="product-modal">
-    <div class="modal">
+    <div class="modal" style="max-width: 900px; width: 95%;">
       <div class="modal-header">
         <div class="modal-title" id="product-modal-title">Add Product</div>
         <button class="modal-close" onclick="closeModal('product-modal')">✕</button>
@@ -1284,14 +1398,17 @@
             <div style="font-weight: 700; font-size: 14px;">BOM Specifications (Raw Materials Recipe)</div>
             <button class="btn btn-outline btn-sm" type="button" onclick="addProductBOMRow()">+ Add Material</button>
           </div>
-          <div style="max-height: 200px; overflow-y: auto;">
+          <div style="max-height: 250px; overflow-y: auto;">
             <table class="data-table" style="font-size:12px; margin-top:5px; width:100%;">
               <thead>
                 <tr>
-                  <th>Raw Material</th>
-                  <th style="width:100px; text-align:left; padding-left:10px;">Unit</th>
-                  <th style="width:120px;">Qty per Product</th>
-                  <th style="width:120px;">Rate / Price</th>
+                  <th style="width:140px;">Material Code</th>
+                  <th style="width:180px;">Material Name</th>
+                  <th style="width:90px;">Unit</th>
+                  <th style="width:110px;">Qty per Prod</th>
+                  <th style="width:100px;">Rate (₹)</th>
+                  <th style="width:110px;">Initial Stock</th>
+                  <th style="width:100px;">Min Alert Level</th>
                   <th style="width:40px;"></th>
                 </tr>
               </thead>
@@ -1307,46 +1424,7 @@
     </div>
   </div>
 
-  <!-- Materials Modal (Admin Add/Edit Catalog) -->
-  <div class="modal-overlay" id="material-modal">
-    <div class="modal" style="max-width: 440px">
-      <div class="modal-header">
-        <div class="modal-title" id="material-modal-title">Add Raw Material</div>
-        <button class="modal-close" onclick="closeModal('material-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="mat-id">
-        <div class="form-group">
-          <label>Material Name</label>
-          <input type="text" id="mat-name" placeholder="e.g. Steel Bar">
-        </div>
-        <div class="form-group">
-          <label>Material Unique Code</label>
-          <input type="text" id="mat-code" placeholder="MAT-XXX">
-        </div>
-        <div class="form-group">
-          <label>Unit of Measure</label>
-          <input type="text" id="mat-unit" placeholder="kg, pcs, liters">
-        </div>
-        <div class="form-group">
-          <label>Rate (per Unit)</label>
-          <input type="number" id="mat-rate" placeholder="0.00" min="0" step="any">
-        </div>
-        <div class="form-group">
-          <label>Initial Stock Qty</label>
-          <input type="number" id="mat-stock" placeholder="0.00" min="0" step="any">
-        </div>
-        <div class="form-group">
-          <label>Minimum stock alert level</label>
-          <input type="number" id="mat-min-level" placeholder="10.00" min="0" step="any">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('material-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitMaterialMaster()">Save Material</button>
-      </div>
-    </div>
-  </div>
+  <!-- Materials Modal commented out as requested -->
 
   <!-- Restock/Purchase Modal -->
   <div class="modal-overlay" id="restock-modal">
@@ -1386,7 +1464,7 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="order-id">
-        
+
         <div class="form-grid">
           <div class="form-group">
             <label>Customer Name</label>
@@ -1416,7 +1494,8 @@
             <div style="font-weight: 700; font-size: 14px;">1. Product Line Items & Custom Materials BOM</div>
             <button class="btn btn-outline btn-sm" onclick="addOrderProductRow()">+ Add Product</button>
           </div>
-          <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr auto; gap:10px; margin-bottom: 5px; font-weight: bold; font-size: 11px; color: var(--text-muted); padding: 0 15px;">
+          <div
+            style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr auto; gap:10px; margin-bottom: 5px; font-weight: bold; font-size: 11px; color: var(--text-muted); padding: 0 15px;">
             <div>Product</div>
             <div>Unit</div>
             <div>Qty</div>
@@ -1430,7 +1509,8 @@
 
 
         <!-- Summary Total Preview -->
-        <div style="margin-top: 20px; background: var(--surface2); padding: 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
+        <div
+          style="margin-top: 20px; background: var(--surface2); padding: 15px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
           <span style="font-size:13px; color:var(--text-muted);">Calculated Grand Total:</span>
           <strong id="order-total-preview" style="font-size: 18px; color: var(--accent2);">₹0.00</strong>
         </div>
@@ -1446,16 +1526,18 @@
   <div class="modal-overlay" id="order-details-modal">
     <div class="modal" style="max-width: 950px; width: 95%;">
       <div class="modal-header">
-        <div class="modal-title" id="order-details-title">Order Particulars: ORD-XXXXXX</div>
+        <div class="modal-title" id="details-order-title">Order Particulars: ORD-XXXXXX</div>
         <button class="modal-close" onclick="closeModal('order-details-modal')">✕</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="details-order-id">
-        
+
         <!-- Info Cards Grid -->
         <div class="grid-2" style="margin-bottom: 20px;">
           <div class="card" style="padding: 16px; margin-bottom: 0;">
-            <div style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Customer & Delivery Details</div>
+            <div
+              style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">
+              Customer & Delivery Details</div>
             <div style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 13px;">
               <div><strong>Client:</strong> <span id="details-customer-name">-</span></div>
               <div><strong>Delivery Target:</strong> <span id="details-delivery-date">-</span></div>
@@ -1463,11 +1545,16 @@
             </div>
           </div>
           <div class="card" style="padding: 16px; margin-bottom: 0;">
-            <div style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">Workflow Status Info</div>
+            <div
+              style="font-weight: 700; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px;">
+              Workflow Status Info</div>
             <div style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 13px;">
-              <div><strong>Current Status:</strong> <span id="details-status-badge" class="badge badge-pending">Pending</span></div>
-              <div><strong>Priority:</strong> <span id="details-priority-badge" class="badge badge-info">medium</span></div>
-              <div><strong>Grand Total Value:</strong> <strong id="details-total-price" style="color:var(--accent2);">₹0.00</strong></div>
+              <div><strong>Current Status:</strong> <span id="details-status-badge"
+                  class="badge badge-pending">Pending</span></div>
+              <div><strong>Priority:</strong> <span id="details-priority-badge" class="badge badge-info">medium</span>
+              </div>
+              <div><strong>Grand Total Value:</strong> <strong id="details-total-price"
+                  style="color:var(--accent2);">₹0.00</strong></div>
             </div>
           </div>
         </div>
@@ -1482,6 +1569,7 @@
                   <th>SKU</th>
                   <th>Product Name</th>
                   <th>Qty</th>
+                  <th>Unit</th>
                   <th>Rate</th>
                   <th>Amount</th>
                 </tr>
@@ -1493,7 +1581,8 @@
 
         <!-- Raw Materials Shortage Check Grid -->
         <div class="card" style="padding: 16px; margin-bottom: 20px;">
-          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Raw Materials Verification Check (MTO BOM)</div>
+          <div style="font-weight: 700; margin-bottom: 10px; color:var(--text);">Raw Materials Verification Check (MTO
+            BOM)</div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1501,11 +1590,11 @@
                   <th>Material Code</th>
                   <th>Raw Material Name</th>
                   <th>Required Qty</th>
-                  <th>Used Qty</th>
-                  <th>Stock Available</th>
-                  <th>Stock Shortage</th>
-                  <th>Rate</th>
-                  <th>Amount</th>
+                  <th>In Stock</th>
+                  <th>Need to Buy</th>
+                  <th>Rate (₹)</th>
+                  <th>Amount (₹)</th>
+                  <th>Remarks</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -1513,17 +1602,18 @@
             </table>
           </div>
         </div>
-
-
-
         <!-- History Timeline audit log -->
         <div class="card" style="padding: 16px; margin-bottom: 0;">
-          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Order Workflow Change Timeline History Log</div>
+          <div style="font-weight: 700; margin-bottom: 8px; color:var(--text);">Order Workflow Change Timeline History
+            Log</div>
           <div class="timeline" id="details-timeline-container"></div>
         </div>
       </div>
-      <div class="modal-footer" id="details-action-buttons">
-        <button class="btn btn-outline" onclick="closeModal('order-details-modal')">Close</button>
+      <div class="modal-footer"
+        style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+        <div id="details-footer-left" style="display:flex; gap:8px; align-items:center;"></div>
+        <div id="details-footer-right"
+          style="display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end;"></div>
       </div>
     </div>
   </div>
@@ -1663,7 +1753,7 @@
     function navigate(page) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      
+
       const elPage = document.getElementById(`page-${page}`);
       if (elPage) elPage.classList.add('active');
 
@@ -1681,7 +1771,7 @@
         reports: 'Analytical Reports',
         users: 'User Privileges'
       };
-      
+
       document.getElementById('page-title').textContent = titles[page] || page;
 
       // Handle top actions buttons
@@ -1772,7 +1862,7 @@
       if (state.revenueChart) {
         state.revenueChart.destroy();
       }
-      
+
       const labels = Object.keys(chartData);
       const values = Object.values(chartData).map(m => m.revenue);
 
@@ -1864,7 +1954,7 @@
         gst_number: document.getElementById('customer-gst').value.toUpperCase(),
         address: document.getElementById('customer-address').value
       };
-      
+
       if (!payload.name || !payload.email) {
         toast('Name and email are mandatory fields', 'error');
         return;
@@ -1880,7 +1970,7 @@
         }
         closeModal('customer-modal');
         loadCustomers();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     async function deleteCustomer(id) {
@@ -1889,7 +1979,7 @@
         await apiFetch(`/customers/${id}`, { method: 'DELETE' });
         toast('Customer account deactivated');
         loadCustomers();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // ==================== PRODUCTS CATALOG ====================
@@ -1964,34 +2054,46 @@
       renderProductBOMRows();
     }
 
-    function onBOMQtyChange(index, qty) {
-      productBOM[index].quantity_per_unit = parseFloat(qty) || 0;
-    }
-
-    function onBOMPriceChange(index, price) {
-      productBOM[index].price = parseFloat(price) || 0;
+    function onBOMFieldChange(index, field, value) {
+      if (field === 'quantity_per_unit' || field === 'price' || field === 'stock_quantity' || field === 'min_stock_level') {
+        productBOM[index][field] = parseFloat(value) || 0;
+      } else {
+        productBOM[index][field] = value;
+      }
     }
 
     function renderProductBOMRows() {
       const container = document.getElementById('product-bom-rows');
       if (!container) return;
       if (productBOM.length === 0) {
-        container.innerHTML = '<tr><td colspan="5" class="empty-state">No materials added to this BOM recipe.</td></tr>';
+        container.innerHTML = '<tr><td colspan="8" class="empty-state">No materials added to this BOM recipe. Click "+ Add Material".</td></tr>';
         return;
       }
+
+      const isEdit = !!document.getElementById('product-id').value;
+
       container.innerHTML = productBOM.map((c, idx) => `
         <tr>
           <td>
-            <select onchange="onBOMMaterialSelectChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
-              ${state.materials.map(m => `<option value="${m.id}" ${m.id === c.material_id ? 'selected' : ''}>${escapeHtml(m.name)} (${escapeHtml(m.code)})</option>`).join('')}
-            </select>
-          </td>
-          <td><span style="padding-left: 10px;">${escapeHtml(c.unit)}</span></td>
-          <td>
-            <input type="number" value="${c.quantity_per_unit}" min="0.0001" step="any" oninput="onBOMQtyChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+            <input type="text" value="${escapeHtml(c.material_code || '')}" placeholder="MAT-01" oninput="onBOMFieldChange(${idx}, 'material_code', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;" required>
           </td>
           <td>
-            <input type="number" value="${c.price}" min="0" step="any" oninput="onBOMPriceChange(${idx}, this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+            <input type="text" value="${escapeHtml(c.material_name || '')}" placeholder="Material Name" oninput="onBOMFieldChange(${idx}, 'material_name', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;" required>
+          </td>
+          <td>
+            <input type="text" value="${escapeHtml(c.unit || 'pcs')}" placeholder="pcs" oninput="onBOMFieldChange(${idx}, 'unit', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+          </td>
+          <td>
+            <input type="number" value="${c.quantity_per_unit}" min="0.0001" step="any" oninput="onBOMFieldChange(${idx}, 'quantity_per_unit', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+          </td>
+          <td>
+            <input type="number" value="${c.price}" min="0" step="any" oninput="onBOMFieldChange(${idx}, 'price', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
+          </td>
+          <td>
+            <input type="number" value="${c.stock_quantity}" min="0" step="any" oninput="onBOMFieldChange(${idx}, 'stock_quantity', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;" ${isEdit ? 'disabled title="Edit stock from Inventory page"' : ''}>
+          </td>
+          <td>
+            <input type="number" value="${c.min_stock_level}" min="0" step="any" oninput="onBOMFieldChange(${idx}, 'min_stock_level', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%;">
           </td>
           <td>
             <button class="btn btn-danger btn-sm" type="button" onclick="removeProductBOMRow(${idx})" style="padding:6px 10px;">✕</button>
@@ -2001,7 +2103,6 @@
     }
 
     async function openAddProductModal() {
-      await ensureMaterialsLoaded();
       document.getElementById('product-id').value = '';
       document.getElementById('product-name').value = '';
       document.getElementById('product-sku').value = '';
@@ -2015,7 +2116,6 @@
     }
 
     async function openEditProductModal(id) {
-      await ensureMaterialsLoaded();
       const p = state.products.find(x => x.id === id);
       if (!p) return;
       document.getElementById('product-id').value = p.id;
@@ -2030,9 +2130,13 @@
         p.components.forEach(c => {
           productBOM.push({
             material_id: c.material_id,
+            material_code: c.material_code || '',
+            material_name: c.material_name || '',
             unit: c.unit || 'pcs',
             quantity_per_unit: c.quantity_per_unit || 1.0,
-            price: c.price || 0.00
+            price: c.price || 0.00,
+            stock_quantity: c.stock_quantity || 0.00,
+            min_stock_level: c.min_stock_level || 0.00
           });
         });
       }
@@ -2053,10 +2157,14 @@
         stock_quantity: 0,
         min_stock_level: 10,
         components: productBOM.map(c => ({
-          material_id: parseInt(c.material_id),
+          material_id: c.material_id ? parseInt(c.material_id) : null,
+          material_code: c.material_code,
+          material_name: c.material_name,
           unit: c.unit,
-          quantity_per_unit: parseFloat(c.quantity_per_unit),
-          price: parseFloat(c.price)
+          quantity_per_unit: parseFloat(c.quantity_per_unit) || 1.0,
+          price: parseFloat(c.price) || 0.00,
+          stock_quantity: parseFloat(c.stock_quantity) || 0.00,
+          min_stock_level: parseFloat(c.min_stock_level) || 0.00
         }))
       };
 
@@ -2075,7 +2183,7 @@
         }
         closeModal('product-modal');
         loadProducts();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     async function deleteProduct(id) {
@@ -2084,25 +2192,27 @@
         await apiFetch(`/products/${id}`, { method: 'DELETE' });
         toast('Product deleted');
         loadProducts();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // ==================== MATERIAL MASTER CATALOG ====================
     async function loadMaterials() {
       try {
-        const query = document.getElementById('material-search').value;
+        const searchInput = document.getElementById('material-search');
+        const query = searchInput ? searchInput.value : '';
         const list = await apiFetch('/materials');
         state.materials = list;
-        
+
         let filtered = list;
         if (query) {
-          filtered = list.filter(m => 
-            m.name.toLowerCase().includes(query.toLowerCase()) || 
+          filtered = list.filter(m =>
+            m.name.toLowerCase().includes(query.toLowerCase()) ||
             m.code.toLowerCase().includes(query.toLowerCase())
           );
         }
 
         const tbody = document.getElementById('materials-body');
+        if (!tbody) return;
         if (filtered.length === 0) {
           tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No raw materials found.</td></tr>';
           return;
@@ -2128,7 +2238,7 @@
             </td>
           </tr>
         `).join('');
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function openAddMaterialModal() {
@@ -2184,7 +2294,7 @@
         }
         closeModal('material-modal');
         loadMaterials();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     async function deleteMaterial(id) {
@@ -2193,7 +2303,7 @@
         await apiFetch(`/materials/${id}`, { method: 'DELETE' });
         toast('Material deactivated');
         loadMaterials();
-      } catch (e) {}
+      } catch (e) { }
     }
     async function openRestockModal(id) {
       const m = state.materials.find(x => x.id === id);
@@ -2222,7 +2332,7 @@
         toast('Restock stock quantity updated');
         closeModal('restock-modal');
         loadMaterials();
-      } catch (e) {}
+      } catch (e) { }
     }
 
 
@@ -2238,7 +2348,7 @@
         const custs = await apiFetch('/customers');
         const prods = await apiFetch('/products');
         const mats = await apiFetch('/materials');
-        
+
         state.customers = custs;
         state.products = prods.filter(p => p.product_type === 'FINISHED_GOOD');
         state.materials = mats;
@@ -2272,6 +2382,8 @@
               it.order_materials.forEach(om => {
                 itemMats.push({
                   material_id: om.material_id,
+                  material_code: om.material_code || '',
+                  material_name: om.material_name || '',
                   required_qty: om.required_qty,
                   unit: om.unit,
                   rate: om.rate,
@@ -2317,18 +2429,20 @@
         description: '',
         materials: []
       };
-      
+
       // Auto-populate default materials BOM if product has components
       if (defaultProd.components && defaultProd.components.length > 0) {
         newProduct.materials = defaultProd.components.map(c => ({
           material_id: c.material_id,
+          material_code: c.material_code || '',
+          material_name: c.material_name || '',
           required_qty: c.quantity_per_unit * 1.0,
           unit: c.unit || 'pcs',
           rate: c.price || 0.00,
           remarks: ''
         }));
       }
-      
+
       orderItems.push(newProduct);
       renderOrderProductRows();
       recalcOrderTotal();
@@ -2351,6 +2465,8 @@
         if (prod.components && prod.components.length > 0) {
           orderItems[index].materials = prod.components.map(c => ({
             material_id: c.material_id,
+            material_code: c.material_code || '',
+            material_name: c.material_name || '',
             required_qty: c.quantity_per_unit * (orderItems[index].quantity || 1),
             unit: c.unit || 'pcs',
             rate: c.price || 0.00,
@@ -2393,16 +2509,16 @@
     }
 
     function addNestedMaterialRow(productIdx) {
-      if (state.materials.length === 0) {
-        toast('No raw materials seeded in master database', 'error');
-        return;
+      if (!orderItems[productIdx].materials) {
+        orderItems[productIdx].materials = [];
       }
-      const defaultMat = state.materials[0];
       orderItems[productIdx].materials.push({
-        material_id: defaultMat.id,
+        material_id: null,
+        material_code: '',
+        material_name: '',
         required_qty: 1.0,
-        unit: defaultMat.unit || 'pcs',
-        rate: defaultMat.rate || 0.00,
+        unit: 'pcs',
+        rate: 0.00,
         remarks: ''
       });
       renderOrderProductRows();
@@ -2417,22 +2533,33 @@
 
     function onNestedMaterialChange(productIdx, matIdx, field, value) {
       const matObj = orderItems[productIdx].materials[matIdx];
-      if (field === 'material_id') {
-        const selectedMat = state.materials.find(m => m.id === parseInt(value));
-        if (selectedMat) {
-          matObj.material_id = selectedMat.id;
-          matObj.unit = selectedMat.unit || 'pcs';
-          matObj.rate = selectedMat.rate || 0.00;
-        }
-      } else if (field === 'required_qty') {
+      if (!matObj) return;
+
+      if (field === 'required_qty') {
         matObj.required_qty = parseFloat(value) || 0;
+        // Update amount display directly to prevent losing focus
+        const amtEl = document.getElementById(`nested-amt-${productIdx}-${matIdx}`);
+        if (amtEl) {
+          amtEl.textContent = `₹${(matObj.required_qty * matObj.rate).toFixed(2)}`;
+        }
+        recalcOrderTotal();
       } else if (field === 'rate') {
         matObj.rate = parseFloat(value) || 0;
+        // Update amount display directly to prevent losing focus
+        const amtEl = document.getElementById(`nested-amt-${productIdx}-${matIdx}`);
+        if (amtEl) {
+          amtEl.textContent = `₹${(matObj.required_qty * matObj.rate).toFixed(2)}`;
+        }
+        recalcOrderTotal();
+      } else if (field === 'material_code') {
+        matObj.material_code = value;
+      } else if (field === 'material_name') {
+        matObj.material_name = value;
+      } else if (field === 'unit') {
+        matObj.unit = value;
       } else if (field === 'remarks') {
         matObj.remarks = value;
       }
-      renderOrderProductRows();
-      recalcOrderTotal();
     }
 
     function renderOrderProductRows() {
@@ -2445,7 +2572,7 @@
       container.innerHTML = orderItems.map((item, idx) => {
         const prod = state.products.find(p => p.id === item.product_id);
         const prodName = prod ? prod.name : 'Unknown Product';
-        
+
         return `
           <div class="product-item-block" style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; background: var(--surface); margin-bottom: 15px;">
             <!-- Product Row -->
@@ -2484,8 +2611,9 @@
                 <button class="btn btn-outline btn-sm" type="button" style="font-size:10px; padding:3px 8px;" onclick="addNestedMaterialRow(${idx})">+ Add Material</button>
               </div>
               
-              <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr 2fr auto; gap:8px; margin-bottom: 4px; font-weight: bold; font-size: 10px; color: var(--text-sub); padding: 0 5px;">
-                <div>Raw Material</div>
+              <div style="display: grid; grid-template-columns: 1.5fr 2.5fr 1.2fr 1fr 1.2fr 1.2fr 2fr auto; gap:8px; margin-bottom: 4px; font-weight: bold; font-size: 10px; color: var(--text-sub); padding: 0 5px;">
+                <div>Code</div>
+                <div>Material Name</div>
                 <div>Req Qty</div>
                 <div>Unit</div>
                 <div>Rate (₹)</div>
@@ -2496,26 +2624,27 @@
 
               <div class="nested-materials-list">
                 ${(item.materials || []).map((mat, matIdx) => `
-                  <div style="display: grid; grid-template-columns: 3fr 1.2fr 1.2fr 1.5fr 1.5fr 2fr auto; gap:8px; align-items:center; margin-bottom:6px; padding:0 5px;">
+                  <div style="display: grid; grid-template-columns: 1.5fr 2.5fr 1.2fr 1fr 1.2fr 1.2fr 2fr auto; gap:8px; align-items:center; margin-bottom:6px; padding:0 5px;">
                     <div>
-                      <select onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'material_id', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
-                        ${state.materials.map(m => `<option value="${m.id}" ${m.id === mat.material_id ? 'selected' : ''}>${escapeHtml(m.name)}</option>`).join('')}
-                      </select>
+                      <input type="text" value="${escapeHtml(mat.material_code || '')}" placeholder="Code" oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'material_code', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;" required>
                     </div>
                     <div>
-                      <input type="number" value="${mat.required_qty}" min="0.0001" step="any" onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'required_qty', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                      <input type="text" value="${escapeHtml(mat.material_name || '')}" placeholder="Material Name" oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'material_name', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;" required>
                     </div>
                     <div>
-                      <span style="font-size:11px; padding-left:4px;">${escapeHtml(mat.unit)}</span>
+                      <input type="number" value="${mat.required_qty}" min="0.0001" step="any" oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'required_qty', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
                     </div>
                     <div>
-                      <input type="number" value="${mat.rate}" min="0" step="any" onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'rate', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                      <input type="text" value="${escapeHtml(mat.unit || 'pcs')}" placeholder="pcs" oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'unit', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
                     </div>
                     <div>
-                      <span style="font-size:11px; font-weight:600; color:var(--accent4); padding-left:4px;">₹${(mat.required_qty * mat.rate).toFixed(2)}</span>
+                      <input type="number" value="${mat.rate}" min="0" step="any" oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'rate', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
                     </div>
                     <div>
-                      <input type="text" value="${escapeHtml(mat.remarks || '')}" placeholder="Execution details..." onchange="onNestedMaterialChange(${idx}, ${matIdx}, 'remarks', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
+                      <span id="nested-amt-${idx}-${matIdx}" style="font-size:11px; font-weight:600; color:var(--accent4); padding-left:4px;">₹${(mat.required_qty * mat.rate).toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <input type="text" value="${escapeHtml(mat.remarks || '')}" placeholder="Execution details..." oninput="onNestedMaterialChange(${idx}, ${matIdx}, 'remarks', this.value)" style="padding:6px; border-radius:6px; border:1px solid var(--border); background:var(--surface2); color:var(--text); width:100%; font-size:11px;">
                     </div>
                     <div>
                       <button class="btn btn-danger btn-sm" type="button" onclick="removeNestedMaterialRow(${idx}, ${matIdx})" style="padding:4px 8px; font-size:10px;">✕</button>
@@ -2545,7 +2674,7 @@
 
     async function submitOrder() {
       const id = document.getElementById('order-id').value;
-      
+
       const payload = {
         customer_id: parseInt(document.getElementById('order-customer').value),
         delivery_date: document.getElementById('order-delivery').value || null,
@@ -2558,7 +2687,9 @@
           unit_price: parseFloat(it.unit_price) || 0.00,
           description: it.description || '',
           materials: (it.materials || []).map(m => ({
-            material_id: parseInt(m.material_id) || 0,
+            material_id: m.material_id ? parseInt(m.material_id) : null,
+            material_code: m.material_code || '',
+            material_name: m.material_name || '',
             required_qty: parseFloat(m.required_qty) || 0.00,
             unit: m.unit || 'pcs',
             rate: parseFloat(m.rate) || 0.00,
@@ -2584,7 +2715,7 @@
         }
         closeModal('order-modal');
         loadOrders();
-      } catch (e) {}
+      } catch (e) { }
     }
 
 
@@ -2617,30 +2748,41 @@
     // All actions available for Sales/Admin (any transition allowed, filtered to exclude current)
     function getNextActions(status) {
       const all = [
-        {s:'pending',           label:'🔄 Reset to Pending'},
-        {s:'order_confirmed',   label:'✅ Confirm Order'},
-        {s:'payment_received',  label:'💰 Payment Received'},
-        {s:'ready_to_process',  label:'🚀 Ready to Process'},
-        {s:'start_processing',  label:'🏭 Start Processing'},
-        {s:'ready_to_dispatch', label:'📦 Ready to Dispatch'},
-        {s:'dispatched',        label:'🚚 Dispatched'},
-        {s:'paused',            label:'⏸ Pause Order'},
-        {s:'other',             label:'📋 Other Action'},
-        {s:'cancelled',         label:'❌ Cancel Order'}
+        { s: 'pending', label: '🔄 Reset to Pending' },
+        { s: 'order_confirmed', label: '✅ Confirm Order' },
+        { s: 'payment_received', label: '💰 Payment Received' },
+        { s: 'ready_to_process', label: '🚀 Ready to Process' },
+        { s: 'start_processing', label: '🏭 Start Processing' },
+        { s: 'ready_to_dispatch', label: '📦 Ready to Dispatch' },
+        { s: 'dispatched', label: '🚚 Dispatched' },
+        { s: 'paused', label: '⏸ Pause Order' },
+        { s: 'other', label: '📋 Other Action' },
+        { s: 'cancelled', label: '❌ Cancel Order' }
       ];
-      return all.filter(a => a.s !== status);
+      return all.filter(a => {
+        if (a.s === status) return false;
+        if (a.s === 'ready_to_dispatch' && status !== 'start_processing') return false;
+        if (a.s === 'dispatched' && status !== 'ready_to_dispatch') return false;
+        return true;
+      });
     }
 
     // All actions available for Manufacturing role
     function getMfgActions(status) {
       const all = [
-        {s:'start_processing',  label:'🏭 Start Processing'},
-        {s:'ready_to_dispatch', label:'📦 Ready to Dispatch'},
-        {s:'dispatched',        label:'🚚 Dispatched'},
-        {s:'other',             label:'📋 Other Action'},
-        {s:'cancelled',         label:'❌ Cancel Order'}
+        { s: 'start_processing', label: '🏭 Start Processing' },
+        { s: 'ready_to_dispatch', label: '📦 Ready to Dispatch' },
+        { s: 'dispatched', label: '🚚 Dispatched' },
+        { s: 'other', label: '📋 Other Action' },
+        { s: 'cancelled', label: '❌ Cancel Order' }
       ];
-      return all.filter(a => a.s !== status);
+      return all.filter(a => {
+        if (a.s === status) return false;
+        if (a.s === 'start_processing' && status !== 'ready_to_process') return false;
+        if (a.s === 'ready_to_dispatch' && status !== 'start_processing') return false;
+        if (a.s === 'dispatched' && status !== 'ready_to_dispatch') return false;
+        return true;
+      });
     }
 
     // ==================== LIST ORDERS (Active Tab) ====================
@@ -2653,7 +2795,7 @@
         }
         const list = await apiFetch(path);
         const tbody = document.getElementById('orders-body');
-        
+
         // Filter out dispatched/completed from active view (unless specifically filtered)
         const activeList = filterStatus ? list : list.filter(o => o.status !== 'dispatched' && o.status !== 'completed');
 
@@ -2665,7 +2807,7 @@
         const role = CURRENT_USER.role;
         tbody.innerHTML = activeList.map(o => {
           const actions = (role === 'admin' || role === 'sales') ? getNextActions(o.status) : [];
-          
+
           let actionDropdown = '';
           if (actions.length > 0) {
             actionDropdown = `
@@ -2729,7 +2871,7 @@
         await apiFetch(`/orders/${id}`, { method: 'DELETE' });
         toast('Order record removed');
         loadOrders();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // ==================== UNIVERSAL STATUS CHANGE ====================
@@ -2767,7 +2909,7 @@
         closeModal('order-details-modal');
         loadOrders();
         loadManufacturing();
-      } catch (e) {}
+      } catch (e) { }
     }
 
 
@@ -2775,13 +2917,13 @@
     async function viewOrderDetails(id) {
       try {
         const o = await apiFetch(`/orders/${id}`);
-        
+
         document.getElementById('details-order-id').value = o.id;
-        document.getElementById('order-details-title').textContent = `Order Details: ${o.order_number}`;
+        document.getElementById('details-order-title').textContent = `Order Details: ${o.order_number}`;
         document.getElementById('details-customer-name').textContent = o.customer ? o.customer.name : 'Walk-in Client';
         document.getElementById('details-delivery-date').textContent = o.delivery_date || 'Not Scheduled';
         document.getElementById('details-description-text').textContent = o.description || 'No execution remarks.';
-        
+
         const statusBadge = document.getElementById('details-status-badge');
         statusBadge.className = `badge badge-${o.status}`;
         statusBadge.textContent = statusLabel(o.status);
@@ -2796,12 +2938,13 @@
         const tbodyProds = document.getElementById('details-products-rows');
         tbodyProds.innerHTML = o.items.map(it => `
           <tr>
-            <td><code>${escapeHtml(it.product?.sku || '-')}</code></td>
+            <td><code>${escapeHtml((it.product && it.product.sku) || '-')}</code></td>
             <td>
-              <strong>${escapeHtml(it.product?.name || '-')}</strong>
+              <strong>${escapeHtml((it.product && it.product.name) || '-')}</strong>
               ${it.description ? `<br><small style="color:var(--text-muted); font-style:italic;">Note: ${escapeHtml(it.description)}</small>` : ''}
             </td>
-            <td>${it.quantity} ${escapeHtml(it.unit || 'pcs')}</td>
+            <td>${it.quantity}</td>
+            <td>${escapeHtml(it.unit || 'pcs')}</td>
             <td>₹${it.unit_price.toFixed(2)}</td>
             <td>₹${it.total_price.toFixed(2)}</td>
           </tr>
@@ -2809,46 +2952,42 @@
 
         // Raw materials check shortages
         let check = { items: [], can_approve: true };
-        try { check = await apiFetch(`/orders/${id}/inventory-check`); } catch(e) {}
+        if (!o.inventory_deducted) {
+          try { check = await apiFetch(`/orders/${id}/inventory-check`); } catch (e) { }
+        }
         const tbodyMats = document.getElementById('details-materials-rows');
+
         if (o.order_materials.length === 0) {
-          tbodyMats.innerHTML = '<tr><td colspan="9" class="empty-state">No materials specified.</td></tr>';
+          tbodyMats.innerHTML = '<tr><td colspan="9" class="empty-state">No materials specified for this order.</td></tr>';
         } else {
           tbodyMats.innerHTML = o.order_materials.map(om => {
-            const chk = check.items.find(x => x.material_id === om.material_id) || {};
-            const shortage = chk.shortage_qty || 0.00;
-            const available = chk.available_qty || 0.00;
-            
+            const chk = !o.inventory_deducted ? (check.items.find(x => x.material_id === om.material_id) || {}) : {};
+            const available = !o.inventory_deducted ? (chk.available_qty != null ? chk.available_qty : 0) : om.required_qty;
+            const shortage = !o.inventory_deducted ? Math.max(0, om.required_qty - available) : 0;
+            const isShort = shortage > 0;
+
+            const statusBadge = o.inventory_deducted
+              ? `<span class="badge" style="background:#10b98122; color:#10b981; border:1px solid #10b98144; font-size:10px; text-transform:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; padding:3px 8px;">✓ Done</span>`
+              : (isShort
+                ? `<span class="badge" style="background:#ef444422; color:#ef4444; border:1px solid #ef444444; font-size:10px; text-transform:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; padding:3px 8px;">⚠ Shortage</span>`
+                : `<span class="badge" style="background:#10b98122; color:#10b981; border:1px solid #10b98144; font-size:10px; text-transform:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; padding:3px 8px;">✓ In Stock</span>`);
+
             return `
-              <tr>
-                <td><code>${escapeHtml(om.material_code)}</code></td>
-                <td><strong>${escapeHtml(om.material_name)}</strong></td>
-                <td>${om.required_qty.toFixed(2)} ${escapeHtml(om.unit)}</td>
-                <td>${om.used_qty.toFixed(2)} ${escapeHtml(om.unit)}</td>
-                <td><strong>${available.toFixed(2)}</strong></td>
-                <td style="color:${shortage > 0 ? 'var(--danger)' : 'inherit'}; font-weight:${shortage > 0 ? 'bold' : 'normal'}">${shortage.toFixed(2)}</td>
+              <tr style="background:${isShort ? 'rgba(239,68,68,0.05)' : 'inherit'}">
+                <td><code style="font-size:11px;">${escapeHtml(om.material_code || '-')}</code></td>
+                <td><strong>${escapeHtml(om.material_name || '-')}</strong></td>
+                <td style="font-weight:600;">${om.required_qty.toFixed(2)} <small style="color:var(--text-muted)">${escapeHtml(om.unit || '')}</small></td>
+                <td style="color:${o.inventory_deducted || available >= om.required_qty ? '#10b981' : '#f59e0b'}; font-weight:600;">${available.toFixed(2)}</td>
+                <td style="color:${isShort ? '#ef4444' : 'var(--text-muted)'}; font-weight:${isShort ? '700' : 'normal'}">${isShort ? shortage.toFixed(2) : '0.00'}</td>
                 <td>₹${om.rate.toFixed(2)}</td>
                 <td>₹${om.amount.toFixed(2)}</td>
-                <td><span class="badge ${shortage > 0 ? 'badge-danger' : 'badge-ok'}">${shortage > 0 ? 'Shortage' : 'In Stock'}</span></td>
+                <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(om.remarks || '—')}</td>
+                <td>${statusBadge}</td>
               </tr>
             `;
           }).join('');
         }
 
-        // Extra fees
-        const tbodyExtras = document.getElementById('details-extras-rows');
-        if (o.extra_items.length === 0) {
-          tbodyExtras.innerHTML = '<tr><td colspan="4" class="empty-state">No extra expenses billed.</td></tr>';
-        } else {
-          tbodyExtras.innerHTML = o.extra_items.map(ei => `
-            <tr>
-              <td><strong>${escapeHtml(ei.item_name)}</strong></td>
-              <td>${ei.quantity}</td>
-              <td>₹${ei.price.toFixed(2)}</td>
-              <td>₹${ei.amount.toFixed(2)}</td>
-            </tr>
-          `).join('');
-        }
 
         // Timeline History Logs
         const timelineContainer = document.getElementById('details-timeline-container');
@@ -2861,7 +3000,7 @@
             if (t.action.includes('Cancel')) classType = 'danger';
             if (t.action.includes('Processing') || t.action.includes('Start')) classType = 'warning';
             if (t.action.includes('Paused')) classType = 'info';
-            
+
             return `
               <div class="timeline-item ${classType}">
                 <div class="timeline-badge"></div>
@@ -2886,18 +3025,51 @@
     }
 
     function renderWorkflowActionButtons(order) {
-      const footer = document.getElementById('details-action-buttons');
-      let html = '<button class="btn btn-outline" onclick="closeModal(\'order-details-modal\')">Close</button>';
-      
+      const leftDiv = document.getElementById('details-footer-left');
+      const rightDiv = document.getElementById('details-footer-right');
+      if (!leftDiv || !rightDiv) return;
+
       const role = CURRENT_USER.role;
       const status = order.status;
 
-      // Edit button (always editable)
+      // Left: Close + Edit buttons
+      let leftHtml = `<button class="btn btn-outline" onclick="closeModal('order-details-modal')" style="font-size:12px; padding:6px 14px;">✕ Close</button>`;
       if (role === 'admin' || role === 'sales') {
-        html += `<button class="btn btn-outline" onclick="closeModal('order-details-modal'); openOrderModal(${order.id})" style="border-color:var(--accent); color:var(--accent);">📝 Edit Order</button>`;
+        leftHtml += `<button class="btn btn-outline" onclick="closeModal('order-details-modal'); openOrderModal(${order.id})" style="border-color:var(--accent); color:var(--accent); font-size:12px; padding:6px 14px;">✏️ Edit</button>`;
       }
+      leftDiv.innerHTML = leftHtml;
 
-      // Get status actions based on role
+      // Right: workflow action buttons — compact pill style
+      const btnStyle = `font-size:11px; padding:5px 10px; border-radius:20px; font-weight:600; letter-spacing:0.3px; display:inline-flex; align-items:center; gap:4px; cursor:pointer; border:none; transition:opacity .15s;`;
+
+      // Colour map per action
+      const colorMap = {
+        pending: { bg: '#6b7280', text: '#fff' },
+        order_confirmed: { bg: '#10b981', text: '#fff' },
+        payment_received: { bg: '#f59e0b', text: '#fff' },
+        ready_to_process: { bg: '#3b82f6', text: '#fff' },
+        start_processing: { bg: '#8b5cf6', text: '#fff' },
+        ready_to_dispatch: { bg: '#06b6d4', text: '#fff' },
+        dispatched: { bg: '#22c55e', text: '#fff' },
+        paused: { bg: '#f97316', text: '#fff' },
+        other: { bg: '#64748b', text: '#fff' },
+        cancelled: { bg: '#ef4444', text: '#fff' }
+      };
+
+      // Short labels (icon + very short text)
+      const shortLabel = {
+        pending: '🔄 Pending',
+        order_confirmed: '✅ Confirm',
+        payment_received: '💰 Payment',
+        ready_to_process: '🚀 Process',
+        start_processing: '🏭 Start',
+        ready_to_dispatch: '📦 Dispatch',
+        dispatched: '🚚 Dispatch',
+        paused: '⏸ Pause',
+        other: '📋 Other',
+        cancelled: '❌ Cancel'
+      };
+
       let actions = [];
       if (role === 'admin' || role === 'sales') {
         actions = getNextActions(status);
@@ -2905,12 +3077,13 @@
         actions = getMfgActions(status);
       }
 
+      let rightHtml = '';
       actions.forEach(a => {
-        const style = a.color ? `background:${a.color}; color:#000; border-color:${a.color};` : '';
-        html += `<button class="btn btn-primary" onclick="changeOrderStatus(${order.id}, '${a.s}')" style="${style}">${a.label}</button>`;
+        const c = colorMap[a.s] || { bg: 'var(--accent)', text: '#fff' };
+        const lbl = shortLabel[a.s] || a.label;
+        rightHtml += `<button onclick="changeOrderStatus(${order.id}, '${a.s}')" title="${a.label}" style="${btnStyle} background:${c.bg}; color:${c.text};" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">${lbl}</button>`;
       });
-
-      footer.innerHTML = html;
+      rightDiv.innerHTML = rightHtml;
     }
 
 
@@ -2981,7 +3154,7 @@
         });
         toast('Material stock updated');
         loadInventory();
-      } catch (e) {}
+      } catch (e) { }
     }
 
 
@@ -2999,7 +3172,7 @@
         tbody.innerHTML = list.map(o => {
           const actions = (role === 'admin' || role === 'manufacturing') ? getMfgActions(o.status) : [];
           const products = o.items ? o.items.map(i => escapeHtml(i.product_name)).join(', ') : '-';
-          
+
           let actionDropdown = '';
           if (actions.length > 0) {
             actionDropdown = `
@@ -3036,7 +3209,7 @@
       activeReportTab = tab;
       document.querySelectorAll('.report-tab-btn').forEach(btn => btn.classList.remove('active'));
       const buttons = document.querySelectorAll('.report-tab-btn');
-      
+
       const idxMap = { order: 0, manufacturing: 1, inventory: 2, consumption: 3, customer: 4 };
       if (buttons[idxMap[tab]]) {
         buttons[idxMap[tab]].classList.add('active');
@@ -3264,7 +3437,7 @@
             </div>
           </div>
         `).join('');
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function openUserModal() {
@@ -3290,7 +3463,7 @@
         document.getElementById('u-role').value = user.role;
         document.getElementById('user-modal-title').textContent = 'Edit User Account';
         openModal('user-modal');
-      } catch (e) {}
+      } catch (e) { }
     }
 
     async function saveUser() {
@@ -3318,7 +3491,7 @@
         }
         closeModal('user-modal');
         loadUsers();
-      } catch (e) {}
+      } catch (e) { }
     }
 
     async function deleteUser(id) {
@@ -3327,7 +3500,7 @@
         await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
         toast('User deleted');
         loadUsers();
-      } catch (e) {}
+      } catch (e) { }
     }
 
 
@@ -3358,7 +3531,7 @@
         document.getElementById('nav-orders').style.display = '';
         document.getElementById('nav-customers').style.display = '';
         document.getElementById('nav-products').style.display = '';
-        document.getElementById('nav-materials').style.display = '';
+        if (document.getElementById('nav-materials')) document.getElementById('nav-materials').style.display = '';
         document.getElementById('nav-inventory').style.display = '';
         document.getElementById('nav-manufacturing').style.display = '';
         document.getElementById('nav-reports').style.display = '';
@@ -3370,7 +3543,7 @@
         document.getElementById('nav-products').style.display = '';
       } else if (role === 'inventory') {
         document.getElementById('nav-inventory').style.display = '';
-        document.getElementById('nav-materials').style.display = '';
+        if (document.getElementById('nav-materials')) document.getElementById('nav-materials').style.display = '';
       } else if (role === 'manufacturing') {
         document.getElementById('nav-manufacturing').style.display = '';
       }

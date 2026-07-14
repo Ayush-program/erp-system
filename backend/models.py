@@ -225,6 +225,14 @@ class OrderMaterial(Base):
     order_item = relationship("OrderItem", back_populates="order_materials")
     material   = relationship("Material", back_populates="order_materials")
 
+    @property
+    def material_name(self):
+        return self.material.name if self.material else f"Material #{self.material_id}"
+
+    @property
+    def material_code(self):
+        return self.material.code if self.material else "-"
+
 # ─── ORDER EXTRA ITEM (Dynamic Extra Items Grid) ──────────────────────────────
 
 class OrderExtraItem(Base):

@@ -36,9 +36,12 @@ class Category(CategoryBase):
 class ProductMaterialCreate(BaseModel):
     material_id: Optional[int] = None
     material_name: Optional[str] = None
+    material_code: Optional[str] = None
     unit: Optional[str] = None
     quantity_per_unit: float = 1.0
     price: Optional[float] = 0.0
+    stock_quantity: Optional[float] = 0.0
+    min_stock_level: Optional[float] = 10.0
 
 class ProductMaterialOut(BaseModel):
     id: int
@@ -113,7 +116,9 @@ class MaterialPurchaseRequest(BaseModel):
 # ─── ORDER DYNAMIC MATERIAL (Order Materials Grid) ────────────────────────────
 
 class OrderMaterialCreate(BaseModel):
-    material_id: int
+    material_id: Optional[int] = None
+    material_name: Optional[str] = None
+    material_code: Optional[str] = None
     required_qty: float
     unit: Optional[str] = "pcs"
     rate: Optional[float] = 0.00
@@ -227,6 +232,7 @@ class OrderFull(BaseModel):
     priority: str = "medium"
     order_date: Optional[datetime] = None
     delivery_date: Optional[date] = None
+    inventory_deducted: bool = False
     customer: Optional[Customer] = None
     items: List[OrderItem] = []
     order_materials: List[OrderMaterialOut] = []
