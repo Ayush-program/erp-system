@@ -1553,7 +1553,7 @@
                   class="badge badge-pending">Pending</span></div>
               <div><strong>Priority:</strong> <span id="details-priority-badge" class="badge badge-info">medium</span>
               </div>
-              <div><strong>Grand Total Value:</strong> <strong id="details-total-price"
+              <div id="details-total-value-row"><strong>Grand Total Value:</strong> <strong id="details-total-price"
                   style="color:var(--accent2);">₹0.00</strong></div>
             </div>
           </div>
@@ -1570,8 +1570,8 @@
                   <th>Product Name</th>
                   <th>Qty</th>
                   <th>Unit</th>
-                  <th>Rate</th>
-                  <th>Amount</th>
+                  <th class="financial-col">Rate</th>
+                  <th class="financial-col">Amount</th>
                 </tr>
               </thead>
               <tbody id="details-products-rows"></tbody>
@@ -1592,8 +1592,8 @@
                   <th>Required Qty</th>
                   <th>In Stock</th>
                   <th>Need to Buy</th>
-                  <th>Rate (₹)</th>
-                  <th>Amount (₹)</th>
+                  <th class="financial-col">Rate (₹)</th>
+                  <th class="financial-col">Amount (₹)</th>
                   <th>Remarks</th>
                   <th>Status</th>
                 </tr>
@@ -2914,12 +2914,14 @@
 
 
     // ==================== ORDER DETAILS & TIMELINE ====================
-    async function viewOrderDetails(id) {
+    async function viewOrderDetails(id, isMfgMode = false) {
       try {
         const o = await apiFetch(`/orders/${id}`);
 
         document.getElementById('details-order-id').value = o.id;
-        document.getElementById('details-order-title').textContent = `Order Details: ${o.order_number}`;
+        document.getElementById('details-order-title').textContent = isMfgMode 
+          ? `Manufacturing Production Sheet: ${o.order_number}` 
+          : `Order Details: ${o.order_number}`;
         document.getElementById('details-customer-name').textContent = o.customer ? o.customer.name : 'Walk-in Client';
         document.getElementById('details-delivery-date').textContent = o.delivery_date || 'Not Scheduled';
         document.getElementById('details-description-text').textContent = o.description || 'No execution remarks.';
@@ -2945,8 +2947,8 @@
             </td>
             <td>${it.quantity}</td>
             <td>${escapeHtml(it.unit || 'pcs')}</td>
-            <td>₹${it.unit_price.toFixed(2)}</td>
-            <td>₹${it.total_price.toFixed(2)}</td>
+            <td class="financial-col">₹${it.unit_price.toFixed(2)}</td>
+            <td class="financial-col">₹${it.total_price.toFixed(2)}</td>
           </tr>
         `).join('');
 
@@ -2979,8 +2981,8 @@
                 <td style="font-weight:600;">${om.required_qty.toFixed(2)} <small style="color:var(--text-muted)">${escapeHtml(om.unit || '')}</small></td>
                 <td style="color:${o.inventory_deducted || available >= om.required_qty ? '#10b981' : '#f59e0b'}; font-weight:600;">${available.toFixed(2)}</td>
                 <td style="color:${isShort ? '#ef4444' : 'var(--text-muted)'}; font-weight:${isShort ? '700' : 'normal'}">${isShort ? shortage.toFixed(2) : '0.00'}</td>
-                <td>₹${om.rate.toFixed(2)}</td>
-                <td>₹${om.amount.toFixed(2)}</td>
+                <td class="financial-col">₹${om.rate.toFixed(2)}</td>
+                <td class="financial-col">₹${om.amount.toFixed(2)}</td>
                 <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(om.remarks || '—')}</td>
                 <td>${statusBadge}</td>
               </tr>
@@ -3019,6 +3021,16 @@
 
         // Display workflow action buttons dynamically
         renderWorkflowActionButtons(o);
+
+        // Toggle financial columns based on mode
+        const finCols = document.querySelectorAll('.financial-col');
+        finCols.forEach(el => {
+          el.style.display = isMfgMode ? 'none' : '';
+        });
+        const totalValRow = document.getElementById('details-total-value-row');
+        if (totalValRow) {
+          totalValRow.style.display = isMfgMode ? 'none' : '';
+        }
 
         openModal('order-details-modal');
       } catch (e) { console.error(e); }
@@ -3185,14 +3197,14 @@
 
           return `
             <tr>
-              <td><a href="#" onclick="viewOrderDetails(${o.id}); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
+              <td><a href="#" onclick="viewOrderDetails(${o.id}, true); return false;" style="color:var(--accent); font-weight:600;">${o.order_number}</a></td>
               <td>${escapeHtml(o.customer?.name || 'Walk-in')}</td>
               <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${products}</td>
               <td>${o.delivery_date || 'N/A'}</td>
               <td><span class="badge ${o.priority === 'high' ? 'badge-danger' : 'badge-info'}">${o.priority}</span></td>
               <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
               <td style="min-width:300px;">
-                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails(${o.id})" style="font-size:11px; padding:4px 8px;">🔍 Details</button>
+                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails(${o.id}, true)" style="font-size:11px; padding:4px 8px;">🔍 Details</button>
                 ${actionDropdown}
               </td>
             </tr>
