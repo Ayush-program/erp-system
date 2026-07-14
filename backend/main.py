@@ -1518,10 +1518,10 @@ def update_order_status(
             db.add(mfg_log)
 
     elif new_status == "ready_to_dispatch":
-        if prev_status != "start_processing":
+        if prev_status not in ["start_processing", "dispatched", "completed"]:
             raise HTTPException(
                 status_code=400,
-                detail="Order must be in 'start_processing' (Processing) state before it can be marked as 'ready_to_dispatch'."
+                detail="Order must be in 'start_processing' state before it can be marked as 'ready_to_dispatch'."
             )
 
     elif new_status in ["dispatched", "completed"]:
