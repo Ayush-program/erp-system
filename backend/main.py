@@ -82,23 +82,27 @@ def material_qty_per_unit(value, default=1.0):
 
 def material_response(material):
     if material.material:
+        stock = to_float(material.material.stock_quantity)
+        min_lvl = to_float(material.material.min_stock_level)
         return {
             "id": material.id,
             "material_name": material.material.name,
             "unit": material.material.unit or "pcs",
             "quantity_per_unit": material_qty_per_unit(material.quantity_per_unit),
-            "stock_quantity": to_float(material.material.stock_quantity),
-            "min_stock_level": to_float(material.material.min_stock_level),
-            "status": material.material.status or "ok"
+            "stock_quantity": stock,
+            "min_stock_level": min_lvl,
+            "status": "low" if stock <= min_lvl else "ok"
         }
+    stock = to_float(material.stock_quantity)
+    min_lvl = to_float(material.min_stock_level)
     return {
         "id": material.id,
         "material_name": material.material_name,
         "unit": material.unit or "pcs",
         "quantity_per_unit": material_qty_per_unit(material.quantity_per_unit),
-        "stock_quantity": to_float(material.stock_quantity),
-        "min_stock_level": to_float(material.min_stock_level),
-        "status": "low" if to_float(material.stock_quantity) <= to_float(material.min_stock_level) else "ok"
+        "stock_quantity": stock,
+        "min_stock_level": min_lvl,
+        "status": "low" if stock <= min_lvl else "ok"
     }
 
 def manufacture_requirements(product_id: int, qty: int, db: Session):
@@ -454,7 +458,7 @@ def delete_customer(
 
     orders = db.query(Order).filter(Order.customer_id == customer_id).all()
     if orders:
-        active_orders = [o for o in orders if o.status not in ["delivered", "cancelled"]]
+        active_orders = [o for o in orders if o.status not in ["dispatched", "completed", "cancelled"]]
         if active_orders:
             raise HTTPException(
                 status_code=400,
@@ -664,7 +668,7 @@ def delete_product(
 
     order_items = db.query(OrderItem).filter(OrderItem.product_id == product_id).all()
     if order_items:
-        active_orders = [i for i in order_items if i.order.status not in ["delivered", "cancelled"]]
+        active_orders = [i for i in order_items if i.order.status not in ["dispatched", "completed", "cancelled"]]
         if active_orders:
             raise HTTPException(
                 status_code=400,
@@ -686,16 +690,31 @@ def stats(
     products = db.query(models.Product).filter(models.Product.is_deleted == False).count()
     orders = db.query(models.Order).count()
     pending_orders = db.query(models.Order).filter(models.Order.status == "pending").count()
-    delivered_orders = db.query(models.Order).filter(models.Order.status == "delivered").count()
+    delivered_orders = db.query(models.Order).filter(models.Order.status.in_(["dispatched", "completed"])).count()
     cancelled_orders = db.query(models.Order).filter(models.Order.status == "cancelled").count()
 
-    delivered_orders_list = db.query(models.Order).filter(models.Order.status == "delivered").all()
+    delivered_orders_list = db.query(models.Order).filter(models.Order.status.in_(["dispatched", "completed"])).all()
     total_revenue = sum([o.total for o in delivered_orders_list if o.total])
 
-    low_stock = db.query(models.Product).filter(
-        models.Product.is_deleted == False,
-        models.Product.stock_quantity <= models.Product.min_stock_level
-    ).count()
+    active_products = db.query(models.Product).filter(models.Product.is_deleted == False).all()
+    active_product_ids = [p.id for p in active_products]
+    
+    low_stock_set = set()
+    if active_product_ids:
+        boms = db.query(models.ProductMaterial).filter(
+            models.ProductMaterial.parent_product_id.in_(active_product_ids)
+        ).all()
+        for bom in boms:
+            if bom.material_id:
+                m = bom.material
+                if m and not m.is_deleted:
+                    if to_float(m.stock_quantity) <= to_float(m.min_stock_level):
+                        low_stock_set.add(f"master_{m.id}")
+            else:
+                if to_float(bom.stock_quantity) <= to_float(bom.min_stock_level):
+                    low_stock_set.add(f"inline_{bom.id}")
+                    
+    low_stock = len(low_stock_set)
 
     return {
         "total_orders": orders,
@@ -708,25 +727,46 @@ def stats(
         "cancelled_orders": cancelled_orders,
     }
 
-@app.get("/api/dashboard/monthly-revenue")
-def monthly_revenue(
+@app.get("/api/dashboard/product-sales")
+def product_sales(
+    period: str = "monthly",
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    orders = db.query(models.Order).filter(models.Order.status == "delivered").all()
-    monthly = defaultdict(lambda: {"revenue": 0, "orders": 0})
+    """Return top products sold quantity aggregated by month or year."""
+    from datetime import datetime, date
+    from collections import defaultdict
 
-    for o in orders:
-        month_name = o.order_date.strftime("%b")
-        monthly[month_name]["revenue"] += o.total
-        monthly[month_name]["orders"] += 1
+    today = date.today()
+    query = db.query(
+        models.Product.name.label("product_name"),
+        func.sum(models.OrderItem.quantity).label("total_qty")
+    ).join(
+        models.OrderItem, models.OrderItem.product_id == models.Product.id
+    ).join(
+        models.Order, models.Order.id == models.OrderItem.order_id
+    ).filter(
+        models.Order.status != "cancelled"
+    )
 
-    months_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    result = {}
-    for m in months_order:
-        result[m] = {"revenue": round(monthly[m]["revenue"], 2), "orders": monthly[m]["orders"]}
+    if period == "monthly":
+        start_date = datetime(today.year, today.month, 1)
+        if today.month == 12:
+            end_date = datetime(today.year + 1, 1, 1)
+        else:
+            end_date = datetime(today.year, today.month + 1, 1)
+        query = query.filter(models.Order.order_date >= start_date, models.Order.order_date < end_date)
+    else:
+        start_date = datetime(today.year, 1, 1)
+        end_date = datetime(today.year + 1, 1, 1)
+        query = query.filter(models.Order.order_date >= start_date, models.Order.order_date < end_date)
 
-    return result
+    results = query.group_by(models.Product.name).order_by(func.sum(models.OrderItem.quantity).desc()).all()
+
+    return [
+        {"product_name": r.product_name, "quantity": int(r.total_qty or 0)}
+        for r in results
+    ]
 
 @app.get("/api/dashboard/recent-orders")
 def recent_orders(
@@ -2033,144 +2073,7 @@ def finalize_order(
 
     return {"message": "Order marked as completed", "order_id": order_id, "status": "completed"}
 
-# ─── REPORTS API MODULES ───────────────────────────────────────────────────────
 
-@app.get("/api/reports/orders")
-def get_order_report(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """Return summary analytics on order status, count, and totals."""
-    results = db.query(
-        models.Order.status,
-        func.count(models.Order.id).label("count"),
-        func.sum(models.Order.total).label("total_value")
-    ).group_by(models.Order.status).all()
-    
-    return [
-        {
-            "status": r.status,
-            "count": r.count,
-            "total_value": round(r.total_value or 0.00, 2)
-        }
-        for r in results
-    ]
-
-@app.get("/api/reports/manufacturing")
-def get_manufacturing_report(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """Return historical log reports of completed and active manufacturing runs."""
-    logs = db.query(models.ManufacturingLog).order_by(models.ManufacturingLog.started_at.desc()).all()
-    result = []
-    for l in logs:
-        ord_num = l.order.order_number if l.order else f"Order #{l.order_id}"
-        op_start = l.started_by_user.name if l.started_by_user else "-"
-        op_comp = l.completed_by_user.name if l.completed_by_user else "-"
-        duration = None
-        if l.started_at and l.completed_at:
-            duration = str(l.completed_at - l.started_at).split(".")[0] # friendly format
-            
-        result.append({
-            "order_number": ord_num,
-            "started_at": l.started_at.isoformat() if l.started_at else None,
-            "completed_at": l.completed_at.isoformat() if l.completed_at else None,
-            "started_by": op_start,
-            "completed_by": op_comp,
-            "duration": duration,
-            "remarks": l.remarks
-        })
-    return result
-
-@app.get("/api/reports/inventory")
-def get_inventory_report(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """List raw materials stock, status, alerts, and calculated stock valuation."""
-    materials = db.query(models.Material).filter(models.Material.is_deleted == False).all()
-    return [
-        {
-            "id": m.id,
-            "name": m.name,
-            "code": m.code,
-            "unit": m.unit,
-            "stock_quantity": m.stock_quantity,
-            "min_stock_level": m.min_stock_level,
-            "rate": m.rate,
-            "valuation": round(m.stock_quantity * m.rate, 2),
-            "status": m.status
-        }
-        for m in materials
-    ]
-
-@app.get("/api/reports/material-consumption")
-def get_material_consumption_report(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """Aggregated raw materials consumption values based on manufactured/completed orders."""
-    results = db.query(
-        models.Material.name.label("material_name"),
-        models.Material.code.label("material_code"),
-        models.Material.unit.label("unit"),
-        func.sum(models.OrderMaterial.used_qty).label("total_consumed"),
-        func.sum(models.OrderMaterial.amount).label("total_cost")
-    ).join(
-        models.OrderMaterial, models.OrderMaterial.material_id == models.Material.id
-    ).join(
-        models.Order, models.Order.id == models.OrderMaterial.order_id
-    ).filter(
-        models.Order.status.in_([
-            "manufacturing", "manufactured", "completed",
-            "start_processing", "ready_to_dispatch", "dispatched"
-        ])
-    ).group_by(
-        models.Material.name, models.Material.code, models.Material.unit
-    ).all()
-    
-    return [
-        {
-            "material_name": r.material_name,
-            "material_code": r.material_code,
-            "unit": r.unit,
-            "total_consumed": r.total_consumed or 0.00,
-            "total_cost": round(r.total_cost or 0.00, 2)
-        }
-        for r in results
-    ]
-
-@app.get("/api/reports/customers")
-def get_customer_report(
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    """Customer analytics report containing total order counts and revenues."""
-    results = db.query(
-        models.Customer.name.label("customer_name"),
-        models.Customer.email.label("customer_email"),
-        func.count(models.Order.id).label("orders_count"),
-        func.sum(models.Order.total).label("total_spend")
-    ).join(
-        models.Order, models.Order.customer_id == models.Customer.id
-    ).filter(
-        models.Customer.is_deleted == False
-    ).group_by(
-        models.Customer.name, models.Customer.email
-    ).order_by(
-        func.sum(models.Order.total).desc()
-    ).all()
-
-    return [
-        {
-            "customer_name": r.customer_name,
-            "customer_email": r.customer_email,
-            "orders_count": r.orders_count,
-            "total_spend": round(r.total_spend or 0.00, 2)
-        }
-        for r in results
-    ]
 
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────

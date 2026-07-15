@@ -976,7 +976,6 @@
         <div class="nav-section-label" id="lbl-op">Operations</div>
         <a class="nav-item" id="nav-orders" onclick="navigate('orders')" style="display:none">
           <span class="icon">📦</span> Orders
-          <span class="nav-badge" id="pending-badge">0</span>
         </a>
         <a class="nav-item" id="nav-customers" onclick="navigate('customers')" style="display:none">
           <span class="icon">👥</span> Customers
@@ -990,9 +989,6 @@
         </a>
         <a class="nav-item" id="nav-manufacturing" onclick="navigate('manufacturing')" style="display:none">
           <span class="icon">⚙️</span> Manufacturing
-        </a>
-        <a class="nav-item" id="nav-reports" onclick="navigate('reports')" style="display:none">
-          <span class="icon">📈</span> Reports
         </a>
 
         <div class="nav-section-label" id="admin-section" style="display:none">Administration</div>
@@ -1084,10 +1080,14 @@
 
           <div class="grid-2">
             <div class="card">
-              <div class="card-header">
-                <div class="card-title">Monthly Revenue</div>
+              <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
+                <div class="card-title" id="sales-chart-title">Product Sales (This Month)</div>
+                <select class="filter-select" id="sales-chart-period" style="width: auto; padding: 4px 8px; font-size: 11px; margin: 0;" onchange="loadDashboard()">
+                  <option value="monthly" selected>Monthly View</option>
+                  <option value="yearly">Yearly View</option>
+                </select>
               </div>
-              <div class="card-body"><canvas id="revenue-chart" height="200"></canvas></div>
+              <div class="card-body"><canvas id="sales-chart" height="200"></canvas></div>
             </div>
             <div class="card">
               <div class="card-header">
@@ -1314,21 +1314,6 @@
                 </tbody>
               </table>
             </div>
-          </div>
-        </div>
-
-        <!-- Reports Page -->
-        <div class="page" id="page-reports">
-          <div class="report-tabs">
-            <button class="report-tab-btn active" onclick="switchReportTab('order')">📦 Order Report</button>
-            <button class="report-tab-btn" onclick="switchReportTab('manufacturing')">🏭 Manufacturing Logs</button>
-            <button class="report-tab-btn" onclick="switchReportTab('inventory')">📊 Raw Inventory Valuation</button>
-            <button class="report-tab-btn" onclick="switchReportTab('consumption')">🪵 Material Consumption</button>
-            <button class="report-tab-btn" onclick="switchReportTab('customer')">👥 Customer Analytics</button>
-          </div>
-
-          <div class="card" id="report-view-container">
-            <div class="empty-state">Select a report tab above to display data.</div>
           </div>
         </div>
 
@@ -1748,7 +1733,7 @@
       customers: [],
       products: [],
       materials: [],
-      revenueChart: null
+      salesChart: null
     };
 
     // Auth Sessions
@@ -1848,7 +1833,6 @@
         materials: 'Material Master',
         inventory: 'Inventory Checks',
         manufacturing: 'Manufacturing Workbench',
-        reports: 'Analytical Reports',
         users: 'User Privileges'
       };
 
@@ -1874,7 +1858,6 @@
       if (page === 'materials') loadMaterials();
       if (page === 'inventory') loadInventory();
       if (page === 'manufacturing') loadManufacturing();
-      if (page === 'reports') loadReports();
       if (page === 'users') loadUsers();
     }
 
@@ -1926,14 +1909,23 @@
     // ==================== DASHBOARD STATS ====================
     async function loadDashboard() {
       try {
+        const periodSelect = document.getElementById('sales-chart-period');
+        const period = periodSelect ? periodSelect.value : 'monthly';
+
         const stats = await apiFetch('/dashboard/stats');
-        const monthly = await apiFetch('/dashboard/monthly-revenue');
+        const salesData = await apiFetch(`/dashboard/product-sales?period=${period}`);
         const recent = await apiFetch('/dashboard/recent-orders');
 
         document.getElementById('stat-orders').textContent = stats.total_orders;
         document.getElementById('stat-revenue').textContent = `₹${stats.total_revenue.toLocaleString('en-IN')}`;
         document.getElementById('stat-customers').textContent = stats.total_customers;
         document.getElementById('stat-lowstock').textContent = stats.low_stock_alerts;
+
+        // Update chart card title
+        const chartTitle = document.getElementById('sales-chart-title');
+        if (chartTitle) {
+          chartTitle.textContent = period === 'monthly' ? 'Product Sales (This Month)' : 'Product Sales (This Year)';
+        }
 
         // Breakdown stats (new 3-dept workflow)
         document.getElementById('stat-p-pending').textContent = recent.filter(o => o.status === 'pending').length;
@@ -1960,30 +1952,32 @@
           `).join('');
         }
 
-        // Render monthly chart
-        renderRevenueChart(monthly);
+        // Render product sales chart
+        renderSalesChart(salesData, period);
       } catch (e) {
         console.error(e);
       }
     }
 
-    function renderRevenueChart(chartData) {
-      const ctx = document.getElementById('revenue-chart').getContext('2d');
-      if (state.revenueChart) {
-        state.revenueChart.destroy();
+    function renderSalesChart(chartData, period) {
+      const canvas = document.getElementById('sales-chart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (state.salesChart) {
+        state.salesChart.destroy();
       }
 
-      const labels = Object.keys(chartData);
-      const values = Object.values(chartData).map(m => m.revenue);
+      const labels = chartData.map(item => item.product_name);
+      const values = chartData.map(item => item.quantity);
 
-      state.revenueChart = new Chart(ctx, {
+      state.salesChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Monthly Revenue (Rs)',
+            label: period === 'monthly' ? 'Quantity Sold (This Month)' : 'Quantity Sold (This Year)',
             data: values,
-            backgroundColor: '#6c63ff',
+            backgroundColor: '#00d2ff',
             borderRadius: 6
           }]
         },
@@ -1991,8 +1985,19 @@
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
-            x: { grid: { display: false } }
+            y: { 
+              beginAtZero: true, 
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { precision: 0 }
+            },
+            x: { 
+              grid: { display: false },
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
           }
         }
       });
@@ -3477,212 +3482,7 @@
     }
 
 
-    // ==================== REPORTS API WORKSPACE ====================
-    let activeReportTab = 'order';
 
-    function switchReportTab(tab) {
-      activeReportTab = tab;
-      document.querySelectorAll('.report-tab-btn').forEach(btn => btn.classList.remove('active'));
-      const buttons = document.querySelectorAll('.report-tab-btn');
-
-      const idxMap = { order: 0, manufacturing: 1, inventory: 2, consumption: 3, customer: 4 };
-      if (buttons[idxMap[tab]]) {
-        buttons[idxMap[tab]].classList.add('active');
-      }
-      loadReports();
-    }
-
-    async function loadReports() {
-      const container = document.getElementById('report-view-container');
-      container.innerHTML = '<div class="empty-state">Generating analytical reports...</div>';
-
-      try {
-        if (activeReportTab === 'order') {
-          const data = await apiFetch('/reports/orders');
-          if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">No orders data recorded yet.</div>';
-            return;
-          }
-          container.innerHTML = `
-            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Order Status Distribution Summary</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Workflow Status</th>
-                    <th>Orders Count</th>
-                    <th>Total Value Billed (Rs)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map(r => `
-                    <tr>
-                      <td><span class="badge badge-${r.status}">${r.status.replace('_', ' ')}</span></td>
-                      <td><strong>${r.count}</strong></td>
-                      <td>₹${r.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        if (activeReportTab === 'manufacturing') {
-          const data = await apiFetch('/reports/manufacturing');
-          if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">No manufacturing run histories logged.</div>';
-            return;
-          }
-          container.innerHTML = `
-            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Historical Manufacturing Activity Logs</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order Ref</th>
-                    <th>Started At</th>
-                    <th>Completed At</th>
-                    <th>Duration</th>
-                    <th>Started By</th>
-                    <th>Completed By</th>
-                    <th>Production Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map(r => `
-                    <tr>
-                      <td><strong>${r.order_number}</strong></td>
-                      <td>${r.started_at ? new Date(r.started_at).toLocaleString() : '-'}</td>
-                      <td>${r.completed_at ? new Date(r.completed_at).toLocaleString() : '-'}</td>
-                      <td><code style="color:var(--accent2);">${r.duration || 'In Progress'}</code></td>
-                      <td>${escapeHtml(r.started_by)}</td>
-                      <td>${escapeHtml(r.completed_by)}</td>
-                      <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(r.remarks || '')}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        if (activeReportTab === 'inventory') {
-          const data = await apiFetch('/reports/inventory');
-          if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">Raw materials Master catalog empty.</div>';
-            return;
-          }
-          const totalValuation = data.reduce((acc, m) => acc + m.valuation, 0);
-          container.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-              <div style="font-weight:700; font-size:15px;">Raw Material Stock Valuation Catalog</div>
-              <div>Total Asset Worth: <strong style="color:var(--accent2); font-size:16px;">₹${totalValuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></div>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Material Name</th>
-                    <th>Stock Qty</th>
-                    <th>Unit</th>
-                    <th>Master Price / Unit (Rs)</th>
-                    <th>Valuation (Rs)</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map(r => `
-                    <tr>
-                      <td><code>${escapeHtml(r.code)}</code></td>
-                      <td><strong>${escapeHtml(r.name)}</strong></td>
-                      <td>${r.stock_quantity.toFixed(2)}</td>
-                      <td>${escapeHtml(r.unit)}</td>
-                      <td>₹${r.rate.toFixed(2)}</td>
-                      <td><strong>₹${r.valuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
-                      <td><span class="badge badge-${r.status === 'ok' ? 'ok' : 'warning'}">${r.status.toUpperCase()}</span></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        if (activeReportTab === 'consumption') {
-          const data = await apiFetch('/reports/material-consumption');
-          if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">No materials consumption logged. Consumptions record upon production start.</div>';
-            return;
-          }
-          container.innerHTML = `
-            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Aggregated Material Consumption & Production Costs</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Material Code</th>
-                    <th>Material Name</th>
-                    <th>Total Qty Consumed</th>
-                    <th>Unit</th>
-                    <th>Aggregated Cost Billed (Rs)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map(r => `
-                    <tr>
-                      <td><code>${escapeHtml(r.material_code)}</code></td>
-                      <td><strong>${escapeHtml(r.material_name)}</strong></td>
-                      <td>${r.total_consumed.toFixed(2)}</td>
-                      <td>${escapeHtml(r.unit)}</td>
-                      <td><strong>₹${r.total_cost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-
-        if (activeReportTab === 'customer') {
-          const data = await apiFetch('/reports/customers');
-          if (data.length === 0) {
-            container.innerHTML = '<div class="empty-state">No client spend information.</div>';
-            return;
-          }
-          container.innerHTML = `
-            <div style="font-weight:700; margin-bottom:15px; font-size:15px;">Client Spend & Order Count Leaderboard</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Client Name</th>
-                    <th>Email Contact</th>
-                    <th>Orders Placed</th>
-                    <th>Cumulative Purchases (Rs)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${data.map((r, idx) => `
-                    <tr>
-                      <td><strong>#${idx + 1}</strong></td>
-                      <td><strong>${escapeHtml(r.customer_name)}</strong></td>
-                      <td>${escapeHtml(r.customer_email)}</td>
-                      <td><strong>${r.orders_count}</strong></td>
-                      <td style="color:var(--accent2); font-weight:bold;">₹${r.total_spend.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-        }
-      } catch (e) {
-        container.innerHTML = '<div class="empty-state" style="color:var(--danger);">Request error rendering data.</div>';
-      }
-    }
 
 
     // ==================== USER PRIVILEGES (Admin Users CRUD) ====================
@@ -3815,7 +3615,6 @@
         if (document.getElementById('nav-materials')) document.getElementById('nav-materials').style.display = '';
         document.getElementById('nav-inventory').style.display = '';
         document.getElementById('nav-manufacturing').style.display = '';
-        document.getElementById('nav-reports').style.display = '';
         document.getElementById('admin-section').style.display = '';
         document.getElementById('nav-users').style.display = '';
       } else if (role === 'sales') {
